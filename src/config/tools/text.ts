@@ -1,0 +1,91 @@
+import { ToolConfig } from "@/config/tools";
+import {
+  Type,
+  FileText,
+  FileJson,
+  Link as LinkIcon,
+  AlignLeft,
+  FileDiff,
+  Hash,
+  SquarePen,
+  Code,
+} from "lucide-react";
+
+export const textTools: ToolConfig[] = [
+  {
+    slug: "case-converter",
+    title: "Case Converter",
+    description:
+      "Convert text between camelCase, snake_case, PascalCase, and more.",
+    category: "text",
+    icon: Type,
+    keywords: ["camel", "snake", "pascal", "kebab", "upper", "lower"],
+  },
+  {
+    slug: "lorem-ipsum",
+    title: "Lorem Ipsum Generator",
+    description: "Generate placeholder text for your designs.",
+    category: "text",
+    icon: FileText,
+    isNew: true,
+  },
+  {
+    slug: "json-formatter",
+    title: "JSON Formatter",
+    description: "Validate, format, and minify JSON data.",
+    category: "text",
+    icon: FileJson,
+    keywords: ["json", "pretty", "minify", "parser"],
+  },
+  {
+    slug: "url-encoder",
+    title: "URL Encoder / Decoder",
+    description: "Encode text to URL-safe format or decode it back.",
+    category: "text",
+    icon: LinkIcon,
+    keywords: ["url", "encode", "decode", "uri", "component"],
+  },
+  {
+    slug: "word-counter",
+    title: "Word Counter",
+    description:
+      "Count words, characters, sentences, and estimate reading time.",
+    category: "text",
+    icon: AlignLeft,
+    keywords: ["count", "stats", "calculator", "writing", "seo"],
+  },
+  {
+    slug: "diff-viewer",
+    title: "Text Diff Viewer",
+    description: "Compare two texts and highlight differences line by line.",
+    category: "text",
+    icon: FileDiff,
+    keywords: ["diff", "compare", "git", "text", "check"],
+  },
+  {
+    slug: "base64-converter",
+    title: "Base64 Encoder",
+    description: "Encode and decode text to Base64 format.",
+    category: "text",
+    icon: Hash,
+    keywords: ["base64", "encode", "decode", "binary"],
+  },
+  {
+    slug: "markdown-previewer",
+    title: "Markdown Previewer",
+    description: "Write and preview Markdown content in real-time.",
+    category: "text",
+    icon: SquarePen,
+    keywords: ["markdown", "preview", "editor", "md", "text"],
+    isNew: true,
+  },
+  {
+    slug: "html-entity",
+    title: "HTML Entity Encoder/Decoder",
+    description: "Convert characters to HTML entities and vice versa.",
+    category: "text",
+    icon: Code,
+    keywords: ["html", "entity", "encode", "decode", "xml", "escape"],
+    isNew: true,
+  },
+];

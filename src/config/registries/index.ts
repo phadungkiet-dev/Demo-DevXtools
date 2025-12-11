@@ -7,6 +7,7 @@ import { securityRegistry } from "./security";
 import { convertersRegistry } from "./converters";
 import { devopsRegistry } from "./devops";
 import { webRegistry } from "./web";
+import { networkRegistry } from "./network";
 
 // รวมทุก Registry เป็น Object เดียว
 export const toolRegistry: Record<string, ComponentType> = {
@@ -18,4 +19,5 @@ export const toolRegistry: Record<string, ComponentType> = {
   ...convertersRegistry,
   ...devopsRegistry,
   ...webRegistry,
+  ...networkRegistry,
 };

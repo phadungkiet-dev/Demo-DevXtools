@@ -27,4 +27,22 @@ export const securityTools: ToolConfig[] = [
     keywords: ["password", "generator", "security", "random"],
     isNew: true,
   },
+  {
+    slug: "rsa-key-generator",
+    title: "RSA Key Generator",
+    description:
+      "Generate secure RSA public and private key pairs (1024, 2048, 4096 bit) locally in your browser.",
+    category: "security",
+    icon: KeyRound,
+    keywords: [
+      "rsa",
+      "key",
+      "generator",
+      "public key",
+      "private key",
+      "encryption",
+      "pem",
+    ],
+    isNew: true,
+  },
 ];

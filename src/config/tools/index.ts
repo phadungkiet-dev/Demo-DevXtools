@@ -6,6 +6,7 @@ import { securityTools } from "./security";
 import { convertersTools } from "./converters";
 import { devopsTools } from "./devops";
 import { webTools } from "./web";
+import { networkTools } from "./network";
 
 export const toolsMap = {
   text: textTools,
@@ -16,6 +17,7 @@ export const toolsMap = {
   converters: convertersTools,
   devops: devopsTools,
   web: webTools,
+  network: networkTools,
 };
 
 // console.log("toolsMap:", toolsMap);

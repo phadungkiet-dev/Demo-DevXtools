@@ -17,4 +17,9 @@ export const securityRegistry: Record<string, ComponentType> = {
       (mod) => mod.PasswordGenerator
     )
   ),
+  "rsa-key-generator": dynamic(() =>
+    import("@/components/tools/security/rsa-key-generator").then(
+      (mod) => mod.RsaKeyGenerator
+    )
+  ),
 };

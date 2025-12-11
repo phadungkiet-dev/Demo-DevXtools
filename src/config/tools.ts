@@ -8,6 +8,7 @@ import {
   Terminal,
   Globe,
   LucideIcon,
+  Network,
 } from "lucide-react";
 import { toolsMap, allToolsConfig } from "./tools/index"; // Import ตัวรวมที่เราเพิ่งทำ
 
@@ -20,7 +21,8 @@ export type ToolCategory =
   | "security"
   | "converters"
   | "devops"
-  | "web";
+  | "web"
+  | "network";
 
 export interface ToolConfig {
   slug: string;
@@ -49,6 +51,7 @@ export const toolCategories: CategoryConfig[] = [
   { id: "converters", label: "Converters", icon: ArrowRightLeft },
   { id: "devops", label: "DevOps", icon: Terminal },
   { id: "web", label: "Web & SEO", icon: Globe },
+  { id: "network", label: "Network", icon: Network },
 ];
 
 export const toolsByCategory = toolsMap;

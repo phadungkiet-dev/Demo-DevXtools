@@ -23,8 +23,8 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "DevToolX - All-in-One Developer Tools",
-    template: "%s | DevToolX", // ผลลัพธ์จะเป็น: "ชื่อเครื่องมือ | DevToolX"
+    default: "CodeXKit - All-in-One Developer Tools",
+    template: "%s | CodeXKit", // ผลลัพธ์จะเป็น: "ชื่อเครื่องมือ | CodeXKit"
   },
   description:
     "Free online developer tools: formatters, converters, generators, and more. Open source, fast, and privacy-focused.",
@@ -39,14 +39,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: baseUrl,
-    siteName: "DevToolX",
-    title: "DevToolX - All-in-One Developer Tools",
+    siteName: "CodeXKit",
+    title: "CodeXKit - All-in-One Developer Tools",
     description:
       "Boost your productivity with our collection of free developer tools.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DevToolX",
+    title: "CodeXKit",
     description: "All-in-One Developer Tools Platform",
   },
 };

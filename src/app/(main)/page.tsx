@@ -118,7 +118,7 @@ export default function Dashboard() {
       {/* 1. Hero Section */}
       <div className="space-y-6 text-center py-8">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-          DevToolX
+          CodeXKit
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Your all-in-one developer toolbox. Thoughtfully designed micro-tools

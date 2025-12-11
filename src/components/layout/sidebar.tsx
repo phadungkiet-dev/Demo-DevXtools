@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Star,
   Clock,
+  Command, // ✅ Import Command icon สำหรับ Mac
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -32,51 +33,47 @@ export function Sidebar({ className, ...props }: SidebarProps) {
   const { favorites } = useFavorites();
   const { recents } = useRecentTools();
 
-  // State เช็คว่าโหลด Client เสร็จหรือยัง (แก้ Hydration Error)
   const [isMounted, setIsMounted] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsedCategories, setCollapsedCategories] = useState<
     Record<string, boolean>
   >({});
 
-  // Toggle การพับหมวดหมู่
-  const toggleCategory = (id: string) => {
-    setCollapsedCategories((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
+  // ✅ State สำหรับเช็คว่าเป็น Mac หรือไม่ (เพื่อโชว์ปุ่มให้ถูก)
+  const [isMac, setIsMac] = useState(false);
 
-  // ✅ 1. set isMounted เป็น true เมื่อ Component โหลดเสร็จ
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsMounted(true);
+      // เช็ค OS ฝั่ง Client
+      if (typeof navigator !== "undefined") {
+        setIsMac(navigator.userAgent.toUpperCase().indexOf("MAC") >= 0);
+      }
     }, 0);
     return () => clearTimeout(timer);
   }, []);
 
-  // ✅ แก้ไข Error: ใช้ setTimeout เพื่อหลีกเลี่ยง Synchronous setState ใน useEffect
+  // ... (Logic เดิม: toggleCategory, activeTool, filter tools ต่างๆ) ...
+  const toggleCategory = (id: string) => {
+    setCollapsedCategories((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   useEffect(() => {
     if (!isOpen) return;
-
     const activeTool = allTools.find(
       (t) => pathname === `/tools/${t.category}/${t.slug}`
     );
-
     if (activeTool) {
       const timer = setTimeout(() => {
         setCollapsedCategories((prev) => ({
           ...prev,
-          [activeTool.category]: false, // บังคับเปิด Accordion ของ Tool ที่ใช้งานอยู่
+          [activeTool.category]: false,
         }));
       }, 0);
-
       return () => clearTimeout(timer);
     }
   }, [pathname, isOpen]);
 
-  // Logic 1: Filter Tools ตาม Search Query
   const filteredTools = useMemo(() => {
     if (!searchQuery) return allTools;
     return allTools.filter(
@@ -88,58 +85,73 @@ export function Sidebar({ className, ...props }: SidebarProps) {
     );
   }, [searchQuery]);
 
-  const favoriteToolsList = useMemo(() => {
-    return filteredTools.filter((t) => favorites.includes(t.slug));
-  }, [filteredTools, favorites]);
+  const favoriteToolsList = useMemo(
+    () => filteredTools.filter((t) => favorites.includes(t.slug)),
+    [filteredTools, favorites]
+  );
 
   const recentToolsList = useMemo(() => {
-    // ถ้ามีการ Search ให้ซ่อน Recent (เพราะ User กำลังหาของใหม่)
     if (searchQuery) return [];
-
     return recents
       .map((slug) => allTools.find((t) => t.slug === slug))
-      .filter((t) => t !== undefined) as typeof allTools; // filter undefined ออก
+      .filter((t) => t !== undefined) as typeof allTools;
   }, [recents, searchQuery]);
 
-  // Logic 2: Group Tools เข้าหมวดหมู่
   const groupedTools = useMemo(() => {
     const groups: Record<string, typeof allTools> = {};
-
     toolCategories.forEach((cat) => {
       const toolsInCat = filteredTools.filter((t) => t.category === cat.id);
-      if (toolsInCat.length > 0) {
-        groups[cat.id] = toolsInCat;
-      }
+      if (toolsInCat.length > 0) groups[cat.id] = toolsInCat;
     });
-
     return groups;
   }, [filteredTools]);
 
-  // ฟังก์ชัน Helper สำหรับ Render ปุ่ม Tool
   const renderToolItem = (tool: (typeof allTools)[0]) => {
     const isActive = pathname === `/tools/${tool.category}/${tool.slug}`;
+
     return (
-      <Button
-        key={tool.slug} // ย้าย key มาไว้ตัวนอกสุด
-        asChild // 👈 สำคัญมาก! บอกให้ Button ส่ง Style ให้ Link ด้านในแทนการสร้าง <button>
-        variant={isActive ? "secondary" : "ghost"}
-        size={isOpen ? "sm" : "icon"}
-        className={cn(
-          "w-full h-8 mb-0.5", // เพิ่ม margin-bottom นิดหน่อยให้ห่างกัน
-          isOpen
-            ? "justify-start px-2 ml-2 w-[calc(100%-0.5rem)]"
-            : "justify-center mx-auto w-9 h-9 mb-1",
-          isActive
-            ? "bg-primary/10 text-primary hover:bg-primary/15 font-medium"
-            : "text-muted-foreground hover:text-foreground",
-          !isOpen &&
-            isActive &&
-            "bg-primary text-primary-foreground hover:bg-primary/90"
-        )}
-        title={!isOpen ? tool.title : undefined}
+      <Link
+        key={tool.slug}
+        href={`/tools/${tool.category}/${tool.slug}`}
+        className="block mb-1 group" // เพิ่ม group เพื่อให้จัดการ hover ได้ง่าย
       >
-        <Link href={`/tools/${tool.category}/${tool.slug}`}>
-          <tool.icon size={16} className={cn("shrink-0", isOpen && "mr-2")} />
+        <div
+          className={cn(
+            // 1. Base Styles (Copy มาจาก Shadcn Button ghost/secondary)
+            "inline-flex items-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "disabled:pointer-events-none disabled:opacity-50",
+            "cursor-pointer", // สำคัญ: ใส่เพื่อให้เมาส์เป็นรูปมือ
+
+            // 2. Size Styles
+            "w-full h-8",
+            isOpen
+              ? "justify-start px-2 ml-2 w-[calc(100%-0.5rem)]"
+              : "justify-center mx-auto w-9 h-9",
+
+            // 3. Variant Styles (Active vs Inactive)
+            isActive
+              ? "bg-primary/10 text-primary hover:bg-primary/15 font-semibold"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground", // ใช้ hover:bg-muted แทน ghost
+
+            // 4. Closed Sidebar Active State
+            !isOpen &&
+              isActive &&
+              "bg-primary text-primary-foreground hover:bg-primary/90"
+          )}
+          title={!isOpen ? tool.title : undefined}
+        >
+          {/* Icon */}
+          <tool.icon
+            size={16}
+            className={cn(
+              "shrink-0 transition-transform duration-200",
+              isOpen && "mr-2",
+              !isOpen && "group-hover:scale-110"
+            )}
+          />
+
+          {/* Text & New Badge (Show only when Open) */}
           {isOpen && (
             <>
               <span className="truncate text-sm">{tool.title}</span>
@@ -150,8 +162,8 @@ export function Sidebar({ className, ...props }: SidebarProps) {
               )}
             </>
           )}
-        </Link>
-      </Button>
+        </div>
+      </Link>
     );
   };
 
@@ -164,6 +176,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
       )}
       {...props}
     >
+      {/* 1. Header */}
       <div className="flex h-16 items-center justify-between px-4 border-b shrink-0">
         <Link href="/" className="flex items-center gap-2 overflow-hidden">
           <div className="flex h-8 w-8 min-w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -175,7 +188,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
               isOpen ? "opacity-100" : "opacity-0 w-0 hidden"
             )}
           >
-            DevToolX
+            CodeXKit
           </span>
         </Link>
         <Button
@@ -188,6 +201,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
         </Button>
       </div>
 
+      {/* 2. Search Area (แก้ไขตรงนี้) */}
       <div
         className={cn(
           "px-3 py-3 shrink-0",
@@ -195,21 +209,31 @@ export function Sidebar({ className, ...props }: SidebarProps) {
         )}
       >
         {isOpen ? (
-          <div className="relative">
+          <div className="relative group">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-9 text-sm bg-muted/50"
+              className="pl-8 pr-12 h-9 text-sm bg-muted/50 transition-colors focus:bg-background" // เพิ่ม pr-12 เว้นที่ให้ Badge
             />
-            {searchQuery && (
+            {/* ✅ ปุ่มบอก Keybind: ถ้ามี Text ให้โชว์ปุ่ม X, ถ้าไม่มีให้โชว์ปุ่มลัด */}
+            {searchQuery ? (
               <button
                 onClick={() => setSearchQuery("")}
                 className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3 w-3" />
               </button>
+            ) : (
+              // Badge บอกปุ่มลัด (แสดงเฉพาะตอนโหลดเสร็จแล้ว)
+              isMounted && (
+                <div className="absolute right-2 top-2 pointer-events-none select-none">
+                  <kbd className="inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                    <span className="text-xs">{isMac ? "⌘" : "Ctrl"}</span>K
+                  </kbd>
+                </div>
+              )
             )}
           </div>
         ) : (
@@ -218,16 +242,17 @@ export function Sidebar({ className, ...props }: SidebarProps) {
             size="icon"
             className="h-9 w-9"
             onClick={toggle}
-            title="Search"
+            title="Search (Ctrl+K)"
           >
             <Search className="h-4 w-4" />
           </Button>
         )}
       </div>
 
+      {/* 3. Navigation Links */}
       <ScrollArea className="flex-1 px-3">
         <div className="space-y-1 pb-4">
-          {/* --- Section 1: Favorites --- */}
+          {/* Favorites */}
           {isMounted && favoriteToolsList.length > 0 && (
             <div className="mb-2">
               {isOpen ? (
@@ -247,8 +272,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
             </div>
           )}
 
-          {/* --- Section 2: Recently Used (เพิ่มใหม่) --- */}
-          {/* แสดงก็ต่อเมื่อ: isMounted=true และ มีรายการ Recent และ ไม่ได้กำลังค้นหาอยู่ */}
+          {/* Recent */}
           {isMounted && recentToolsList.length > 0 && !searchQuery && (
             <div className="mb-2">
               {isOpen ? (
@@ -259,7 +283,6 @@ export function Sidebar({ className, ...props }: SidebarProps) {
                   </span>
                 </div>
               ) : (
-                // ถ้า Sidebar ปิด ไม่ต้องแสดงเส้นคั่นซ้ำซ้อนถ้ามี Favorites อยู่แล้ว
                 favoriteToolsList.length === 0 && (
                   <div className="my-2 border-t border-dashed border-muted-foreground/20 mx-2" />
                 )
@@ -271,7 +294,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
             </div>
           )}
 
-          {/* --- Section 3: Categories --- */}
+          {/* Categories */}
           {Object.keys(groupedTools).length === 0 &&
           (isMounted ? favoriteToolsList.length === 0 : true) ? (
             <div
@@ -286,9 +309,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
             toolCategories.map((category) => {
               const tools = groupedTools[category.id];
               if (!tools) return null;
-
               const isCollapsed = collapsedCategories[category.id];
-
               return (
                 <div key={category.id} className="mb-1">
                   {isOpen ? (
@@ -313,7 +334,6 @@ export function Sidebar({ className, ...props }: SidebarProps) {
                   ) : (
                     <div className="my-2 border-t border-dashed border-muted-foreground/20 mx-2" />
                   )}
-
                   <div
                     className={cn(
                       "space-y-0.5 transition-all duration-200 ease-in-out",

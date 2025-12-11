@@ -38,8 +38,10 @@ export function CommandMenu() {
   // Logic: เปิด/ปิด ด้วย Ctrl+K หรือ Cmd+K
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
+      // ✅ แก้ไข: ใช้ .toLowerCase() เพื่อให้รับทั้ง k และ K (กรณี CapsLock/Shift)
+      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault(); // ป้องกัน Browser แย่ง Focus
+        console.log("Ctrl+K Pressed! Toggling menu..."); // ไว้เช็คใน Console (F12)
         setOpen((open) => !open);
       }
     };
@@ -60,7 +62,6 @@ export function CommandMenu() {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
-        {/* 1. Navigation Group */}
         <CommandGroup heading="General">
           <CommandItem onSelect={() => runCommand(() => router.push("/"))}>
             <Home className="mr-2 h-4 w-4" />
@@ -77,14 +78,11 @@ export function CommandMenu() {
 
         <CommandSeparator />
 
-        {/* 2. Tools List (ดึงมาจาก Config โดยตรง) */}
         <CommandGroup heading="Tools">
           {allTools.map((tool) => (
             <CommandItem
               key={tool.slug}
-              value={`${tool.title} ${tool.description} ${tool.keywords?.join(
-                " "
-              )}`} // ใส่ keywords เพื่อให้ search เจอได้กว้างขึ้น
+              value={`${tool.title} ${tool.description}`}
               onSelect={() =>
                 runCommand(() =>
                   router.push(`/tools/${tool.category}/${tool.slug}`)
@@ -99,7 +97,6 @@ export function CommandMenu() {
 
         <CommandSeparator />
 
-        {/* 3. Theme Toggle */}
         <CommandGroup heading="Theme">
           <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
             <Sun className="mr-2 h-4 w-4" />

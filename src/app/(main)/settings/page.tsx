@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentTools } from "@/hooks/useRecentTools";
@@ -27,6 +28,15 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { favorites, clearFavorites } = useFavorites();
   const { recents, clearRecents } = useRecentTools();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handler: Clear Favorites
   const handleClearFavorites = () => {
@@ -75,7 +85,10 @@ export default function SettingsPage() {
                 Select your preferred theme.
               </div>
             </div>
-            <Select value={theme} onValueChange={setTheme}>
+            <Select
+              value={mounted ? theme : undefined} // ถ้ายังไม่ mount ให้เป็น undefined (เพื่อให้ตรงกับ Server)
+              onValueChange={setTheme}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>

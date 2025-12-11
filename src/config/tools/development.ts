@@ -6,6 +6,7 @@ import {
   Keyboard,
   Clock,
   Database,
+  Code2,
 } from "lucide-react";
 
 export const developmentTools: ToolConfig[] = [
@@ -58,6 +59,15 @@ export const developmentTools: ToolConfig[] = [
     category: "development",
     icon: Database,
     keywords: ["sql", "formatter", "database", "query", "beautify"],
+    isNew: true,
+  },
+  {
+    slug: "json-to-ts",
+    title: "JSON to TypeScript",
+    description: "Convert JSON objects into TypeScript interfaces.",
+    category: "development",
+    icon: Code2, // import Code2
+    keywords: ["json", "typescript", "interface", "type", "convert"],
     isNew: true,
   },
 ];

@@ -1,5 +1,5 @@
 import { ToolConfig } from "@/config/tools";
-import { ImageIcon, QrCode } from "lucide-react";
+import { ImageIcon, QrCode, Scaling } from "lucide-react";
 
 export const imageTools: ToolConfig[] = [
   {
@@ -19,5 +19,14 @@ export const imageTools: ToolConfig[] = [
     category: "image",
     icon: QrCode,
     keywords: ["qr", "code", "generator", "barcode", "2d"],
+  },
+  {
+    slug: "aspect-ratio-calculator",
+    title: "Aspect Ratio Calculator",
+    description: "Calculate image aspect ratios and dimensions.",
+    category: "image",
+    icon: Scaling, // import Scaling (หรือใช้ Ratio ถ้ามี, ถ้าไม่มีใช้ Box)
+    keywords: ["ratio", "aspect", "calculator", "image", "dimension"],
+    isNew: true,
   },
 ];

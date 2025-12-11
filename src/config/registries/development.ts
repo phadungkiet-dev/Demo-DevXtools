@@ -32,4 +32,9 @@ export const developmentRegistry: Record<string, ComponentType> = {
       (mod) => mod.SqlFormatter
     )
   ),
+  "json-to-ts": dynamic(() =>
+    import("@/components/tools/development/json-to-ts").then(
+      (mod) => mod.JsonToTsConverter
+    )
+  ),
 };

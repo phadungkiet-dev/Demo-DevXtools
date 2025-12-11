@@ -12,4 +12,9 @@ export const imageRegistry: Record<string, ComponentType> = {
       (mod) => mod.QrGenerator
     )
   ),
+  "aspect-ratio-calculator": dynamic(() =>
+    import("@/components/tools/image/aspect-ratio-calculator").then(
+      (mod) => mod.AspectRatioCalculator
+    )
+  ),
 };

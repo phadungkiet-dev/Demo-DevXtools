@@ -11,30 +11,33 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function ThemeToggle({ isOpen }: { isOpen: boolean }) {
+// ✅ แก้ไข 1: ใส่ ? เพื่อให้ isOpen เป็น Optional (ไม่ต้องส่งค่าก็ได้)
+export function ThemeToggle({ isOpen }: { isOpen?: boolean }) {
   const { setTheme } = useTheme();
 
-  if (!isOpen) {
-    // ย่อ Sidebar: แสดงปุ่ม Icon เดียว กดแล้ว Toggle วนไป (หรือเปิด Dropdown ก็ได้ แต่วนง่ายกว่า)
-    return (
-      <Button variant="ghost" size="icon" onClick={() => setTheme("dark")}>
-        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Toggle theme</span>
-      </Button>
-    );
-  }
-
-  // ขยาย Sidebar: แสดง Dropdown เต็มยศ
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full justify-start gap-2">
+        {/* ✅ แก้ไข 2: ปรับ Logic ปุ่ม
+            - ถ้า isOpen = true (Sidebar กาง): แสดงปุ่มเต็มพร้อมข้อความ
+            - ถ้า isOpen = false หรือ undefined (Sidebar หุบ หรือ Header): แสดงแค่ Icon
+        */}
+        <Button
+          variant={isOpen ? "outline" : "ghost"}
+          size={isOpen ? "default" : "icon"}
+          className={isOpen ? "w-full justify-start gap-2" : "h-9 w-9"}
+        >
           <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span>Change Theme</span>
+
+          {isOpen ? (
+            <span>Change Theme</span>
+          ) : (
+            <span className="sr-only">Toggle theme</span>
+          )}
         </Button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
           <Sun className="mr-2 h-4 w-4" />

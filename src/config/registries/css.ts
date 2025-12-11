@@ -22,4 +22,29 @@ export const cssRegistry: Record<string, ComponentType> = {
       (mod) => mod.ColorConverter
     )
   ),
+  "glassmorphism-generator": dynamic(() =>
+    import("@/components/tools/css/glassmorphism-generator").then(
+      (mod) => mod.GlassmorphismGenerator
+    )
+  ),
+  "blob-generator": dynamic(() =>
+    import("@/components/tools/css/blob-generator").then(
+      (mod) => mod.BlobGenerator
+    )
+  ),
+  "neumorphism-generator": dynamic(() =>
+    import("@/components/tools/css/neumorphism-generator").then(
+      (mod) => mod.NeumorphismGenerator
+    )
+  ),
+  "gradient-text-generator": dynamic(() =>
+    import("@/components/tools/css/gradient-text-generator").then(
+      (mod) => mod.GradientTextGenerator
+    )
+  ),
+  "claymorphism-generator": dynamic(() =>
+    import("@/components/tools/css/claymorphism-generator").then(
+      (mod) => mod.ClaymorphismGenerator
+    )
+  ),
 };

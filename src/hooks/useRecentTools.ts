@@ -1,29 +1,49 @@
 import { useState, useEffect } from "react";
 
 const MAX_RECENTS = 5; // เก็บย้อนหลังสูงสุด 5 รายการ
-const STORAGE_KEY = "5kkVsddFSg";
+const STORAGE_KEY = "devtoolx-recents";
 
 export function useRecentTools() {
-  const [recents, setRecents] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
+  const [recents, setRecents] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
+  // 1. Load data (Asynchronous to fix hydration/sync errors)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(recents));
-  }, [recents]);
+    const timer = setTimeout(() => {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          try {
+            setRecents(JSON.parse(saved));
+          } catch (e) {
+            console.error("Failed to parse recents", e);
+          }
+        }
+        setIsLoaded(true);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 2. Save data
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(recents));
+    }
+  }, [recents, isLoaded]);
 
   const addRecent = (toolSlug: string) => {
     setRecents((prev) => {
-      // 1. ลบของเดิมออกก่อน (ถ้ามี) เพื่อจะย้ายไปบนสุด
+      // ลบตัวเดิมออกก่อน (ถ้ามี) แล้วเอาไปใส่หน้าสุด
       const filtered = prev.filter((slug) => slug !== toolSlug);
-      // 2. ใส่ของใหม่ไว้หน้าสุด + ตัดให้เหลือตามจำนวนที่กำหนด
-      return [toolSlug, ...filtered].slice(0, MAX_RECENTS);
+      const newRecents = [toolSlug, ...filtered].slice(0, MAX_RECENTS);
+      return newRecents;
     });
   };
 
-  return { recents, addRecent };
+  const clearRecents = () => {
+    setRecents([]);
+  };
+
+  return { recents, addRecent, clearRecents };
 }

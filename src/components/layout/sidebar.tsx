@@ -18,9 +18,11 @@ import {
   ChevronDown,
   ChevronRight,
   Star,
+  Clock,
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useRecentTools } from "@/hooks/useRecentTools";
 
 type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -28,6 +30,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
   const pathname = usePathname();
   const { isOpen, toggle } = useSidebarStore();
   const { favorites } = useFavorites();
+  const { recents } = useRecentTools();
 
   // State เช็คว่าโหลด Client เสร็จหรือยัง (แก้ Hydration Error)
   const [isMounted, setIsMounted] = useState(false);
@@ -89,6 +92,15 @@ export function Sidebar({ className, ...props }: SidebarProps) {
     return filteredTools.filter((t) => favorites.includes(t.slug));
   }, [filteredTools, favorites]);
 
+  const recentToolsList = useMemo(() => {
+    // ถ้ามีการ Search ให้ซ่อน Recent (เพราะ User กำลังหาของใหม่)
+    if (searchQuery) return [];
+
+    return recents
+      .map((slug) => allTools.find((t) => t.slug === slug))
+      .filter((t) => t !== undefined) as typeof allTools; // filter undefined ออก
+  }, [recents, searchQuery]);
+
   // Logic 2: Group Tools เข้าหมวดหมู่
   const groupedTools = useMemo(() => {
     const groups: Record<string, typeof allTools> = {};
@@ -107,28 +119,26 @@ export function Sidebar({ className, ...props }: SidebarProps) {
   const renderToolItem = (tool: (typeof allTools)[0]) => {
     const isActive = pathname === `/tools/${tool.category}/${tool.slug}`;
     return (
-      <Link
-        key={tool.slug}
-        href={`/tools/${tool.category}/${tool.slug}`}
-        className="block"
+      <Button
+        key={tool.slug} // ย้าย key มาไว้ตัวนอกสุด
+        asChild // 👈 สำคัญมาก! บอกให้ Button ส่ง Style ให้ Link ด้านในแทนการสร้าง <button>
+        variant={isActive ? "secondary" : "ghost"}
+        size={isOpen ? "sm" : "icon"}
+        className={cn(
+          "w-full h-8 mb-0.5", // เพิ่ม margin-bottom นิดหน่อยให้ห่างกัน
+          isOpen
+            ? "justify-start px-2 ml-2 w-[calc(100%-0.5rem)]"
+            : "justify-center mx-auto w-9 h-9 mb-1",
+          isActive
+            ? "bg-primary/10 text-primary hover:bg-primary/15 font-medium"
+            : "text-muted-foreground hover:text-foreground",
+          !isOpen &&
+            isActive &&
+            "bg-primary text-primary-foreground hover:bg-primary/90"
+        )}
+        title={!isOpen ? tool.title : undefined}
       >
-        <Button
-          variant={isActive ? "secondary" : "ghost"}
-          size={isOpen ? "sm" : "icon"}
-          className={cn(
-            "w-full h-8",
-            isOpen
-              ? "justify-start px-2 ml-2 w-[calc(100%-0.5rem)]"
-              : "justify-center mx-auto w-9 h-9 mb-1",
-            isActive
-              ? "bg-primary/10 text-primary hover:bg-primary/15 font-medium"
-              : "text-muted-foreground hover:text-foreground",
-            !isOpen &&
-              isActive &&
-              "bg-primary text-primary-foreground hover:bg-primary/90"
-          )}
-          title={!isOpen ? tool.title : undefined}
-        >
+        <Link href={`/tools/${tool.category}/${tool.slug}`}>
           <tool.icon size={16} className={cn("shrink-0", isOpen && "mr-2")} />
           {isOpen && (
             <>
@@ -140,8 +150,8 @@ export function Sidebar({ className, ...props }: SidebarProps) {
               )}
             </>
           )}
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     );
   };
 
@@ -154,7 +164,6 @@ export function Sidebar({ className, ...props }: SidebarProps) {
       )}
       {...props}
     >
-      {/* 1. Header / Logo Area */}
       <div className="flex h-16 items-center justify-between px-4 border-b shrink-0">
         <Link href="/" className="flex items-center gap-2 overflow-hidden">
           <div className="flex h-8 w-8 min-w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -179,7 +188,6 @@ export function Sidebar({ className, ...props }: SidebarProps) {
         </Button>
       </div>
 
-      {/* 2. Search Area */}
       <div
         className={cn(
           "px-3 py-3 shrink-0",
@@ -217,10 +225,9 @@ export function Sidebar({ className, ...props }: SidebarProps) {
         )}
       </div>
 
-      {/* 3. Navigation Links (Scrollable) */}
       <ScrollArea className="flex-1 px-3">
         <div className="space-y-1 pb-4">
-          {/* ✅ 2. เพิ่ม isMounted && เพื่อป้องกัน Hydration Error */}
+          {/* --- Section 1: Favorites --- */}
           {isMounted && favoriteToolsList.length > 0 && (
             <div className="mb-2">
               {isOpen ? (
@@ -233,19 +240,39 @@ export function Sidebar({ className, ...props }: SidebarProps) {
               ) : (
                 <div className="my-2 border-t border-dashed border-muted-foreground/20 mx-2" />
               )}
-
               <div className="space-y-0.5">
                 {favoriteToolsList.map((tool) => renderToolItem(tool))}
               </div>
-
-              {/* Separator ระหว่าง Favorites กับ Categories */}
               <div className="my-3 border-t border-border mx-2 opacity-50" />
             </div>
           )}
 
-          {/* Existing Logic: Categories Loop */}
+          {/* --- Section 2: Recently Used (เพิ่มใหม่) --- */}
+          {/* แสดงก็ต่อเมื่อ: isMounted=true และ มีรายการ Recent และ ไม่ได้กำลังค้นหาอยู่ */}
+          {isMounted && recentToolsList.length > 0 && !searchQuery && (
+            <div className="mb-2">
+              {isOpen ? (
+                <div className="flex items-center gap-2 px-2 py-2 mb-1 text-blue-500/80 font-semibold">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Recent
+                  </span>
+                </div>
+              ) : (
+                // ถ้า Sidebar ปิด ไม่ต้องแสดงเส้นคั่นซ้ำซ้อนถ้ามี Favorites อยู่แล้ว
+                favoriteToolsList.length === 0 && (
+                  <div className="my-2 border-t border-dashed border-muted-foreground/20 mx-2" />
+                )
+              )}
+              <div className="space-y-0.5">
+                {recentToolsList.map((tool) => renderToolItem(tool))}
+              </div>
+              <div className="my-3 border-t border-border mx-2 opacity-50" />
+            </div>
+          )}
+
+          {/* --- Section 3: Categories --- */}
           {Object.keys(groupedTools).length === 0 &&
-          // เพิ่ม isMounted เช็คตรงนี้ด้วยเพื่อความชัวร์ (ถ้ายังไม่ mount ก็อย่าเพิ่งบอกว่า empty)
           (isMounted ? favoriteToolsList.length === 0 : true) ? (
             <div
               className={cn(
@@ -293,7 +320,6 @@ export function Sidebar({ className, ...props }: SidebarProps) {
                       isOpen && isCollapsed ? "hidden" : "block"
                     )}
                   >
-                    {/* ใช้ Helper function แทนการเขียนซ้ำ */}
                     {tools.map((tool) => renderToolItem(tool))}
                   </div>
                 </div>
@@ -303,7 +329,6 @@ export function Sidebar({ className, ...props }: SidebarProps) {
         </div>
       </ScrollArea>
 
-      {/* 4. Footer Area */}
       <div className="border-t p-4 mt-auto shrink-0 bg-background">
         <ThemeToggle isOpen={isOpen} />
       </div>

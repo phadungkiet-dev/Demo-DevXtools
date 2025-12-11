@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/providers/theme-provider"; // Import ที่สร้างตะกี้
-import { Toaster } from "@/components/ui/sonner"; // 👈 เพิ่ม Import Toaster
-import { cn } from "@/lib/utils"; // 👈 เพิ่ม Import cn
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
+import { CommandMenu } from "@/components/layout/command-menu";
 
-// 1. เปลี่ยนชื่อจาก geistSans เป็น fontSans ให้ตรงกับที่เรียกใช้ข้างล่าง
 const fontSans = Geist({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -16,9 +16,39 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+  ? `https://${process.env.NEXT_PUBLIC_APP_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "DevToolX",
-  description: "All-in-One Developer Tools Platform",
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: "DevToolX - All-in-One Developer Tools",
+    template: "%s | DevToolX", // ผลลัพธ์จะเป็น: "ชื่อเครื่องมือ | DevToolX"
+  },
+  description:
+    "Free online developer tools: formatters, converters, generators, and more. Open source, fast, and privacy-focused.",
+  keywords: [
+    "developer tools",
+    "web tools",
+    "json formatter",
+    "uuid generator",
+    "coding utilities",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: baseUrl,
+    siteName: "DevToolX",
+    title: "DevToolX - All-in-One Developer Tools",
+    description:
+      "Boost your productivity with our collection of free developer tools.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DevToolX",
+    description: "All-in-One Developer Tools Platform",
+  },
 };
 
 export default function RootLayout({
@@ -31,8 +61,8 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable, // ✅ ตอนนี้ชื่อตัวแปรตรงกันแล้ว
-          geistMono.variable // เพิ่ม Mono font เข้าไปด้วยเผื่อใช้
+          fontSans.variable,
+          geistMono.variable
         )}
       >
         <ThemeProvider
@@ -42,7 +72,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <Toaster /> {/* ✅ Import มาแล้ว ใช้งานได้ */}
+          <CommandMenu />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

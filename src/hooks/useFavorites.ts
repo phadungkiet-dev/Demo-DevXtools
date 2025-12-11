@@ -45,7 +45,11 @@ export function useFavorites() {
     );
   };
 
+  const clearFavorites = () => {
+    setFavorites([]);
+  };
+
   const isFavorite = (toolId: string) => favorites.includes(toolId);
 
-  return { favorites, toggleFavorite, isFavorite };
+  return { favorites, toggleFavorite, isFavorite, clearFavorites };
 }

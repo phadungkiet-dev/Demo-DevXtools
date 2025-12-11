@@ -1,11 +1,9 @@
-"use client";
-
-import { use, useEffect } from "react";
-import { useRecentTools } from "@/hooks/useRecentTools";
+import { Metadata } from "next"; // ✅ Import Metadata
 import { notFound } from "next/navigation";
 import { getToolBySlug, toolCategories } from "@/config/tools";
 import { ToolHeader } from "@/components/shared/tool-header";
 import { Separator } from "@/components/ui/separator";
+import { RecentToolTracker } from "@/components/tools/recent-tool-tracker"; // ✅ Import ตัวช่วยเก็บ History
 
 // --- Imports: Text Tools ---
 import { LoremIpsumGenerator } from "@/components/tools/text/lorem-ipsum";
@@ -51,8 +49,6 @@ import { ChmodCalculator } from "@/components/tools/devops/chmod-calculator";
 import { MetaTagGenerator } from "@/components/tools/web/meta-tag-generator";
 import { UserAgentParser } from "@/components/tools/web/user-agent-parser";
 
-import { FavoriteButton } from "@/components/tools/favorite-button";
-
 interface PageProps {
   params: Promise<{
     category: string;
@@ -60,23 +56,37 @@ interface PageProps {
   }>;
 }
 
-export default function ToolPage({ params }: PageProps) {
-  // ใช้ hook use() เพื่อ unwrap params ตามมาตรฐาน Next.js ล่าสุด
-  const resolvedParams = use(params);
-  const { category, slug } = resolvedParams;
-  const { addRecent } = useRecentTools();
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const tool = getToolBySlug(slug);
+
+  if (!tool) {
+    return {
+      title: "Tool Not Found",
+    };
+  }
+
+  return {
+    title: tool.title, // จะไปรวมกับ Template ใน layout.tsx เป็น "Tool Name | DevToolX"
+    description: tool.description,
+    keywords: tool.keywords,
+    openGraph: {
+      title: tool.title,
+      description: tool.description,
+      type: "website",
+    },
+  };
+}
+
+export default async function ToolPage({ params }: PageProps) {
+  // ✅ 2. ใน Server Component ใช้ await params โดยตรง
+  const { category, slug } = await params;
 
   const tool = getToolBySlug(slug);
 
-  // Update Page Title
-  useEffect(() => {
-    if (tool) {
-      document.title = `${tool.title} | DevToolX`;
-      addRecent(tool.slug);
-    }
-  }, [tool, addRecent]);
-
-  // 1. Validation: ถ้าไม่มี Tool หรือ Category ไม่ตรง ให้ 404
+  // 1. Validation
   if (!tool || tool.category !== category) {
     notFound();
   }
@@ -127,7 +137,6 @@ export default function ToolPage({ params }: PageProps) {
         return <QrGenerator />;
 
       // --- CSS ---
-      // หมายเหตุ: เช็ค slug ใน tools.ts ให้ตรง (box-shadow หรือ box-shadow-generator)
       case "box-shadow":
       case "box-shadow-generator":
         return <BoxShadowGenerator />;
@@ -167,9 +176,6 @@ export default function ToolPage({ params }: PageProps) {
               Component not found for slug:{" "}
               <span className="font-mono text-primary">{tool.slug}</span>
             </p>
-            <p className="text-sm mt-2">
-              Please check the route configuration in page.tsx
-            </p>
           </div>
         );
     }
@@ -177,7 +183,9 @@ export default function ToolPage({ params }: PageProps) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
-      {/* 2. แก้ไข: ใช้ Props ให้ตรงกับ ToolHeader เดิม (ลบ icon, ใช้ categoryLabel) */}
+      {/* ✅ 3. ใส่ Tracker Component เพื่อบันทึก History (Client-side logic) */}
+      <RecentToolTracker slug={tool.slug} />
+
       <ToolHeader
         title={tool.title}
         description={tool.description}

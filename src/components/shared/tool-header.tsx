@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -18,36 +20,44 @@ export function ToolHeader({
 }: ToolHeaderProps) {
   return (
     <div className="mb-8 space-y-4">
-      {/* Breadcrumb / Back Navigation */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/">
-          <Button variant="link" className="h-auto p-0 text-muted-foreground">
+      {/* Breadcrumb: ใช้ <nav> เพื่อ Semantic ที่ดี */}
+      <nav
+        aria-label="Breadcrumb"
+        className="flex items-center gap-2 text-sm text-muted-foreground"
+      >
+        {/* ใช้ asChild เพื่อไม่ให้เกิด <a> ซ้อน <button> */}
+        <Button
+          variant="link"
+          className="h-auto p-0 text-muted-foreground hover:text-foreground"
+          asChild
+        >
+          <Link href="/">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Home
-          </Button>
-        </Link>
-        <span>/</span>
-        <span>{categoryLabel}</span>
-      </div>
+          </Link>
+        </Button>
+        <span aria-hidden="true" className="text-muted-foreground/60">
+          /
+        </span>
+        <span className="font-medium text-foreground">{categoryLabel}</span>
+      </nav>
 
-      {/* Main Title Area */}
+      {/* Main Content */}
       <div className="space-y-2">
-        {/* ✅ 2. ปรับ Layout: ห่อ h1 และปุ่มดาวไว้ใน Flex container */}
-        <div className="flex items-center gap-4">
+        {/* Flex container สำหรับ Title และ ปุ่มดาว */}
+        <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {title}
           </h1>
 
-          {/* ✅ 3. แสดงปุ่มดาว (ตรวจสอบว่ามี slug ส่งมาหรือไม่) */}
-          {slug && (
-            <FavoriteButton
-              slug={slug}
-              className="mt-1" // ปรับตำแหน่งลงมานิดหน่อยให้ตรงกับ Text
-            />
-          )}
+          {/* ปุ่มดาว: ใช้ shrink-0 กันบีบ และ items-center ของ parent จัดการตำแหน่งแนวตั้งให้แล้ว */}
+          {slug && <FavoriteButton slug={slug} className="shrink-0" />}
         </div>
 
-        <p className="text-lg text-muted-foreground">{description}</p>
+        {/* Description: จำกัดความกว้าง (max-w) ให้อ่านง่ายบนจอใหญ่ */}
+        <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
+          {description}
+        </p>
       </div>
     </div>
   );

@@ -1,42 +1,42 @@
 import { useState, useEffect } from "react";
 
 export function useFavorites() {
-  // 1. เริ่มต้นค่าว่างเสมอ (เพื่อแก้ Hydration Mismatch)
+  // State: เริ่มต้นเป็นอาเรย์ว่างเสมอ เพื่อให้ Server Render ผ่านฉลุย
   const [favorites, setFavorites] = useState<string[]>([]);
-  // 2. ตัวแปรเช็คว่าโหลดข้อมูลเสร็จหรือยัง (ป้องกันการ Save ทับข้อมูลว่างๆ)
+  // Loading Flag: หัวใจสำคัญ! บอกว่า "โหลดของเก่าเสร็จหรือยัง"
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // --- Effect 1: โหลดข้อมูล (ทำงานครั้งเดียวตอนเริ่ม) ---
+  // --- Effect: Load Data (ทำงานครั้งเดียวตอน Mount) ---
   useEffect(() => {
-    // ใช้ setTimeout เพื่อแก้ Error: Calling setState synchronously
+    // ใช้ setTimeout(..., 0) เพื่อย้ายการทำงานไปที่ Event Loop รอบถัดไป
+    // ช่วยแก้ปัญหา Hydration Warning และ Performance
     const timer = setTimeout(() => {
       if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("devtoolx-favorites");
+        const saved = localStorage.getItem("codexkit-favorites");
         if (saved) {
           try {
-            setFavorites(JSON.parse(saved));
+            setFavorites(JSON.parse(saved)); // แปลง JSON กลับเป็น Array
           } catch (e) {
-            console.error("Failed to parse favorites", e);
+            console.error("Failed to parse favorites", e); // กันเหนียวเผื่อไฟล์เสีย
           }
         }
-        // บอกว่าโหลดเสร็จแล้วนะ
-        setIsLoaded(true);
+        setIsLoaded(true); // ปลดล็อค! บอกว่าโหลดเสร็จแล้ว พร้อมให้ Save ได้
       }
     }, 0);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timer); // Cleanup
   }, []);
 
-  // --- Effect 2: บันทึกข้อมูล (ทำงานเมื่อ favorites เปลี่ยน) ---
+  // --- Effect: Save Data (ทำงานเมื่อ favorites เปลี่ยน) ---
   useEffect(() => {
-    // ต้องรอให้โหลดของเก่าเสร็จก่อน (isLoaded === true) ถึงจะยอมให้ Save
-    // ไม่งั้นมันจะเอากล่องว่างๆ ไป Save ทับข้อมูลเก่าหายหมด
+    // Guard Clause: ถ้ายังโหลดของเก่าไม่เสร็จ ห้าม Save เด็ดขาด!
+    // เพราะตอนเริ่ม favorites เป็น [] ถ้าเผลอ Save ตอนนี้ ข้อมูลเก่าจะหายหมด
     if (isLoaded) {
-      localStorage.setItem("devtoolx-favorites", JSON.stringify(favorites));
+      localStorage.setItem("codexkit-favorites", JSON.stringify(favorites));
     }
-  }, [favorites, isLoaded]);
+  }, [favorites, isLoaded]); // dependencies ครบถ้วน
 
-  // ฟังก์ชัน Toggle (เหมือนเดิม)
+  // Helper Functions
   const toggleFavorite = (toolId: string) => {
     setFavorites((prev) =>
       prev.includes(toolId)

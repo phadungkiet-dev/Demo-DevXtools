@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 
 const MAX_RECENTS = 5; // เก็บย้อนหลังสูงสุด 5 รายการ
-const STORAGE_KEY = "devtoolx-recents";
+const STORAGE_KEY = "codexkit-recents";
 
 export function useRecentTools() {
   const [recents, setRecents] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false); // Flag สำคัญเหมือนเดิม
 
-  // 1. Load data (Asynchronous to fix hydration/sync errors)
+  // --- Effect: Load (Safe Hydration) ---
   useEffect(() => {
     const timer = setTimeout(() => {
       if (typeof window !== "undefined") {
@@ -19,23 +19,27 @@ export function useRecentTools() {
             console.error("Failed to parse recents", e);
           }
         }
-        setIsLoaded(true);
+        setIsLoaded(true); // พร้อมทำงานต่อ
       }
     }, 0);
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Save data
+  // --- Effect: Save (Auto Sync) ---
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded) { // Guard: ป้องกันการเซฟทับข้อมูลเก่าตอนโหลดไม่เสร็จ
       localStorage.setItem(STORAGE_KEY, JSON.stringify(recents));
     }
   }, [recents, isLoaded]);
 
+  // --- Logic หลัก: เพิ่มประวัติ ---
   const addRecent = (toolSlug: string) => {
     setRecents((prev) => {
-      // ลบตัวเดิมออกก่อน (ถ้ามี) แล้วเอาไปใส่หน้าสุด
+      // Filter: เอาตัวเดิมออกก่อน (ถ้ามี) เพื่อไม่ให้ซ้ำ และเตรียมย้ายตำแหน่ง
       const filtered = prev.filter((slug) => slug !== toolSlug);
+
+      // Prepend: เอาตัวใหม่ใส่หน้าสุด
+      // Slice: ตัดให้เหลือแค่ 5 ตัว
       const newRecents = [toolSlug, ...filtered].slice(0, MAX_RECENTS);
       return newRecents;
     });

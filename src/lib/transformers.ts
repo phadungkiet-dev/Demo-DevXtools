@@ -1,15 +1,34 @@
-import _ from "lodash";
+// Optimized Import: ดึงเฉพาะฟังก์ชันที่ใช้ (ช่วยเรื่อง Tree Shaking)
+import {
+  camelCase,
+  kebabCase,
+  snakeCase,
+  startCase,
+  upperFirst,
+  lowerCase,
+} from "lodash";
 
 export const transformers = {
+  // --- Basic ---
   lowercase: (text: string) => text.toLowerCase(),
   uppercase: (text: string) => text.toUpperCase(),
-  camelCase: (text: string) => _.camelCase(text),
-  pascalCase: (text: string) => _.upperFirst(_.camelCase(text)),
-  snakeCase: (text: string) => _.snakeCase(text),
-  kebabCase: (text: string) => _.kebabCase(text),
-  constantCase: (text: string) => _.snakeCase(text).toUpperCase(),
-  sentenceCase: (text: string) => _.upperFirst(text.toLowerCase()),
-  titleCase: (text: string) => _.startCase(_.camelCase(text)), // Adjust based on preference
+
+  // --- Code Cases ---
+  camelCase: (text: string) => camelCase(text),
+  pascalCase: (text: string) => upperFirst(camelCase(text)),
+  snakeCase: (text: string) => snakeCase(text),
+  kebabCase: (text: string) => kebabCase(text),
+  constantCase: (text: string) => snakeCase(text).toUpperCase(),
+
+  // --- New Additions ---
+  dotCase: (text: string) => lowerCase(text).replace(/ /g, "."), // dev.tool.x
+  pathCase: (text: string) => lowerCase(text).replace(/ /g, "/"), // dev/tool/x
+
+  // --- Text Formats ---
+  sentenceCase: (text: string) => upperFirst(text.toLowerCase()),
+  titleCase: (text: string) => startCase(camelCase(text)),
+
+  // Custom Logic
   alternatingCase: (text: string) =>
     text
       .split("")
@@ -17,8 +36,10 @@ export const transformers = {
       .join(""),
 };
 
+// Derived Type (Automatic Type Safety)
 export type CaseType = keyof typeof transformers;
 
+// UI Mapping
 export const caseLabels: Record<CaseType, string> = {
   lowercase: "lowercase",
   uppercase: "UPPERCASE",
@@ -27,6 +48,8 @@ export const caseLabels: Record<CaseType, string> = {
   snakeCase: "snake_case",
   kebabCase: "kebab-case",
   constantCase: "CONSTANT_CASE",
+  dotCase: "dot.case",
+  pathCase: "path/case",
   sentenceCase: "Sentence case",
   titleCase: "Title Case",
   alternatingCase: "aLtErNaTiNg cAsE",

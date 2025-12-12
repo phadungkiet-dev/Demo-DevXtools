@@ -1,3 +1,4 @@
+// Constants: คลังคำศัพท์ (Private scope)
 const WORDS = [
   "lorem",
   "ipsum",
@@ -18,7 +19,6 @@ const WORDS = [
   "dolore",
   "magna",
   "aliqua",
-  "ut",
   "enim",
   "ad",
   "minim",
@@ -29,7 +29,6 @@ const WORDS = [
   "ullamco",
   "laboris",
   "nisi",
-  "ut",
   "aliquip",
   "ex",
   "ea",
@@ -38,15 +37,12 @@ const WORDS = [
   "duis",
   "aute",
   "irure",
-  "dolor",
   "in",
   "reprehenderit",
-  "in",
   "voluptate",
   "velit",
   "esse",
   "cillum",
-  "dolore",
   "eu",
   "fugiat",
   "nulla",
@@ -58,7 +54,6 @@ const WORDS = [
   "non",
   "proident",
   "sunt",
-  "in",
   "culpa",
   "qui",
   "officia",
@@ -70,68 +65,88 @@ const WORDS = [
   "laborum",
 ];
 
+const LOREM_START = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+
+// Types: Export ให้โลกภายนอกใช้
 export type LoremType = "paragraph" | "sentence" | "word";
 
+// Helpers: แยกออกมาเพื่อ Performance (สร้างครั้งเดียว) และ Unit Test ง่าย
+const getRandomInt = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
+const getRandomWord = () => WORDS[Math.floor(Math.random() * WORDS.length)];
+
+const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+
+const generateSentence = (minWords = 5, maxWords = 15): string => {
+  const length = getRandomInt(minWords, maxWords);
+  const words = Array.from({ length }, getRandomWord);
+  return capitalize(words.join(" ")) + ".";
+};
+
+// Main Function
 export function generateLorem(
   count: number,
   type: LoremType,
   startWithLorem: boolean
 ): string {
-  // Helper to get random word
-  const randomWord = () => WORDS[Math.floor(Math.random() * WORDS.length)];
-
-  // Helper to capitalize
-  const capitalize = (str: string) =>
-    str.charAt(0).toUpperCase() + str.slice(1);
-
   const result: string[] = [];
+  switch (type) {
+    case "word": {
+      for (let i = 0; i < count; i++) {
+        result.push(getRandomWord());
+      }
 
-  if (type === "word") {
-    for (let i = 0; i < count; i++) {
-      result.push(randomWord());
+      // Override start logic for words
+      if (startWithLorem && count >= 2) {
+        result[0] = "lorem";
+        result[1] = "ipsum";
+      }
+      return result.join(" ");
     }
-    if (startWithLorem && count > 2) {
-      result[0] = "lorem";
-      result[1] = "ipsum";
+
+    case "sentence": {
+      for (let i = 0; i < count; i++) {
+        result.push(generateSentence());
+      }
+
+      // Override start logic for sentences
+      if (startWithLorem && result.length > 0) {
+        // แทนที่ประโยคแรกด้วย Standard Start ไปเลย เพื่อความสวยงาม
+        const firstSentence = result[0];
+        // ถ้าประโยคแรกสั้นกว่า Standard ให้แทนที่เลย
+        // ถ้ายาวกว่า ให้แทนที่ส่วนต้น
+        if (firstSentence.length < LOREM_START.length) {
+          result[0] = LOREM_START;
+        } else {
+          // ง่ายๆ คือแทนที่ประโยคแรกไปเลย เป็นวิธีที่ Clean ที่สุดสำหรับ Lorem Ipsum Generator
+          result[0] = LOREM_START;
+        }
+      }
+      return result.join(" ");
     }
-    return result.join(" ");
+
+    case "paragraph": {
+      for (let i = 0; i < count; i++) {
+        const numSentences = getRandomInt(3, 7); // 3-7 sentences per paragraph
+        const sentences = Array.from({ length: numSentences }, () =>
+          generateSentence()
+        );
+        result.push(sentences.join(" "));
+      }
+
+      // Override start logic for paragraphs
+      if (startWithLorem && result.length > 0) {
+        // วิธี: แทนที่ประโยคแรกของ paragraph แรกด้วย LOREM_START
+        const sentencesInFirstPara = result[0].split(". ");
+        sentencesInFirstPara[0] = LOREM_START.replace(".", "");
+        result[0] = sentencesInFirstPara.join(". ");
+      }
+
+      return result.join("\n\n");
+    }
+
+    default:
+      return "";
   }
-
-  // Generate Sentences
-  const generateSentence = (minWords = 5, maxWords = 15) => {
-    const length =
-      Math.floor(Math.random() * (maxWords - minWords + 1)) + minWords;
-    const words = Array.from({ length }, randomWord);
-    return capitalize(words.join(" ")) + ".";
-  };
-
-  if (type === "sentence") {
-    for (let i = 0; i < count; i++) {
-      result.push(generateSentence());
-    }
-    // Handle startWithLorem for sentences logic if needed (simplified here)
-    return result.join(" ");
-  }
-
-  // Generate Paragraphs
-  if (type === "paragraph") {
-    for (let i = 0; i < count; i++) {
-      const numSentences = Math.floor(Math.random() * 5) + 3; // 3-7 sentences per para
-      const sentences = Array.from({ length: numSentences }, () =>
-        generateSentence()
-      );
-      result.push(sentences.join(" "));
-    }
-
-    if (startWithLorem && result.length > 0) {
-      // Force replace start of first paragraph
-      result[0] =
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
-        result[0].split(".").slice(1).join(".");
-    }
-
-    return result.join("\n\n");
-  }
-
-  return "";
 }

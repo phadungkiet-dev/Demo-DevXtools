@@ -27,7 +27,16 @@ export const textTools: ToolConfig[] = [
     description: "Generate placeholder text for your designs.",
     category: "text",
     icon: FileText,
-    isNew: true,
+    // isNew: true,
+  },
+  {
+    slug: "word-counter",
+    title: "Word Counter",
+    description:
+      "Count words, characters, sentences, and estimate reading time.",
+    category: "text",
+    icon: AlignLeft,
+    keywords: ["count", "stats", "calculator", "writing", "seo"],
   },
   {
     slug: "json-formatter",
@@ -44,15 +53,6 @@ export const textTools: ToolConfig[] = [
     category: "text",
     icon: LinkIcon,
     keywords: ["url", "encode", "decode", "uri", "component"],
-  },
-  {
-    slug: "word-counter",
-    title: "Word Counter",
-    description:
-      "Count words, characters, sentences, and estimate reading time.",
-    category: "text",
-    icon: AlignLeft,
-    keywords: ["count", "stats", "calculator", "writing", "seo"],
   },
   {
     slug: "diff-viewer",

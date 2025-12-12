@@ -7,13 +7,16 @@ export function PageWrapper({ children }: { children: React.ReactNode }) {
   const { isOpen } = useSidebarStore();
 
   return (
-    <div
+    <main
       className={cn(
-        "flex flex-col min-h-screen transition-all duration-300 ease-in-out",
-        isOpen ? "ml-64" : "ml-16" // ขยับเนื้อหาตามความกว้าง Sidebar
+        "flex min-h-screen flex-col transition-all duration-300 ease-in-out",
+        "pt-16", // ✅ Fix Overlap: ดันเนื้อหาลงมาเท่ากับความสูง Header (64px/4rem)
+        isOpen ? "md:pl-72" : "md:pl-[72px]" // ✅ Fix Sidebar Overlap: ดันเนื้อหาไปขวา
       )}
     >
-      {children}
-    </div>
+      <div className="flex-1 p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full">
+        {children}
+      </div>
+    </main>
   );
 }

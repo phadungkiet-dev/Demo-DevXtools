@@ -5,25 +5,24 @@ import { usePathname } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
 import { toolCategories, allTools } from "@/config/tools";
 import { useSidebarStore } from "@/store/use-sidebar-store";
 import {
-  ChevronLeft,
-  Menu,
-  Box,
-  Search,
-  X,
-  ChevronDown,
   ChevronRight,
+  Box,
   Star,
   Clock,
-  Command, // ✅ Import Command icon สำหรับ Mac
+  PanelLeftClose,
+  PanelRightClose,
 } from "lucide-react";
-import { ThemeToggle } from "./theme-toggle";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentTools } from "@/hooks/useRecentTools";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -34,29 +33,14 @@ export function Sidebar({ className, ...props }: SidebarProps) {
   const { recents } = useRecentTools();
 
   const [isMounted, setIsMounted] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [collapsedCategories, setCollapsedCategories] = useState<
     Record<string, boolean>
   >({});
 
-  // ✅ State สำหรับเช็คว่าเป็น Mac หรือไม่ (เพื่อโชว์ปุ่มให้ถูก)
-  const [isMac, setIsMac] = useState(false);
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsMounted(true);
-      // เช็ค OS ฝั่ง Client
-      if (typeof navigator !== "undefined") {
-        setIsMac(navigator.userAgent.toUpperCase().indexOf("MAC") >= 0);
-      }
-    }, 0);
+    const timer = setTimeout(() => setIsMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
-
-  // ... (Logic เดิม: toggleCategory, activeTool, filter tools ต่างๆ) ...
-  const toggleCategory = (id: string) => {
-    setCollapsedCategories((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -65,102 +49,97 @@ export function Sidebar({ className, ...props }: SidebarProps) {
     );
     if (activeTool) {
       const timer = setTimeout(() => {
-        setCollapsedCategories((prev) => ({
-          ...prev,
-          [activeTool.category]: false,
-        }));
+        setCollapsedCategories((prev) => {
+          if (prev[activeTool.category] === false) return prev;
+          return { ...prev, [activeTool.category]: false };
+        });
       }, 0);
       return () => clearTimeout(timer);
     }
   }, [pathname, isOpen]);
 
-  const filteredTools = useMemo(() => {
-    if (!searchQuery) return allTools;
-    return allTools.filter(
-      (t) =>
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.keywords?.some((k) =>
-          k.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    );
-  }, [searchQuery]);
+  const toggleCategory = (id: string) => {
+    setCollapsedCategories((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const favoriteToolsList = useMemo(
-    () => filteredTools.filter((t) => favorites.includes(t.slug)),
-    [filteredTools, favorites]
+    () => allTools.filter((t) => favorites.includes(t.slug)),
+    [favorites]
   );
-
-  const recentToolsList = useMemo(() => {
-    if (searchQuery) return [];
-    return recents
-      .map((slug) => allTools.find((t) => t.slug === slug))
-      .filter((t) => t !== undefined) as typeof allTools;
-  }, [recents, searchQuery]);
+  const recentToolsList = useMemo(
+    () =>
+      recents
+        .map((slug) => allTools.find((t) => t.slug === slug))
+        .filter((t) => t !== undefined) as typeof allTools,
+    [recents]
+  );
 
   const groupedTools = useMemo(() => {
     const groups: Record<string, typeof allTools> = {};
     toolCategories.forEach((cat) => {
-      const toolsInCat = filteredTools.filter((t) => t.category === cat.id);
+      const toolsInCat = allTools.filter((t) => t.category === cat.id);
       if (toolsInCat.length > 0) groups[cat.id] = toolsInCat;
     });
     return groups;
-  }, [filteredTools]);
+  }, []);
 
-  const renderToolItem = (tool: (typeof allTools)[0]) => {
+  const renderToolItem = (tool: (typeof allTools)[0], isIndent = true) => {
     const isActive = pathname === `/tools/${tool.category}/${tool.slug}`;
+
+    if (!isOpen) {
+      return (
+        <TooltipProvider key={tool.slug} delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href={`/tools/${tool.category}/${tool.slug}`}
+                className={cn(
+                  "flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all duration-200 mb-1",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <tool.icon size={20} />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="font-medium z-[60]">
+              {tool.title}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
 
     return (
       <Link
         key={tool.slug}
         href={`/tools/${tool.category}/${tool.slug}`}
-        className="block mb-1 group" // เพิ่ม group เพื่อให้จัดการ hover ได้ง่าย
+        className="block mb-1 group relative"
       >
         <div
           className={cn(
-            // 1. Base Styles (Copy มาจาก Shadcn Button ghost/secondary)
-            "inline-flex items-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            "disabled:pointer-events-none disabled:opacity-50",
-            "cursor-pointer", // สำคัญ: ใส่เพื่อให้เมาส์เป็นรูปมือ
-
-            // 2. Size Styles
-            "w-full h-8",
-            isOpen
-              ? "justify-start px-2 ml-2 w-[calc(100%-0.5rem)]"
-              : "justify-center mx-auto w-9 h-9",
-
-            // 3. Variant Styles (Active vs Inactive)
+            "flex items-center h-9 rounded-lg text-sm transition-all duration-200 select-none",
+            isIndent
+              ? "px-3 ml-3 border-l-2 border-transparent hover:border-border/50"
+              : "px-3",
             isActive
-              ? "bg-primary/10 text-primary hover:bg-primary/15 font-semibold"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground", // ใช้ hover:bg-muted แทน ghost
-
-            // 4. Closed Sidebar Active State
-            !isOpen &&
-              isActive &&
-              "bg-primary text-primary-foreground hover:bg-primary/90"
+              ? "bg-primary/10 text-primary font-medium border-l-primary"
+              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
           )}
-          title={!isOpen ? tool.title : undefined}
         >
-          {/* Icon */}
           <tool.icon
             size={16}
             className={cn(
-              "shrink-0 transition-transform duration-200",
-              isOpen && "mr-2",
-              !isOpen && "group-hover:scale-110"
+              "shrink-0 mr-3 transition-colors",
+              isActive ? "text-primary" : "text-muted-foreground/70"
             )}
           />
-
-          {/* Text & New Badge (Show only when Open) */}
-          {isOpen && (
-            <>
-              <span className="truncate text-sm">{tool.title}</span>
-              {tool.isNew && (
-                <span className="ml-auto text-[9px] bg-green-500/10 text-green-600 px-1 rounded-sm border border-green-500/20 font-bold">
-                  N
-                </span>
-              )}
-            </>
+          <span className="truncate flex-1">{tool.title}</span>
+          {tool.isNew && (
+            <span className="shrink-0 text-[10px] uppercase font-bold text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">
+              New
+            </span>
           )}
         </div>
       </Link>
@@ -170,187 +149,138 @@ export function Sidebar({ className, ...props }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen border-r bg-background transition-all duration-300 ease-in-out flex flex-col",
-        isOpen ? "w-64" : "w-16",
+        // ✅ Z-Index 50: สูงกว่า Header (40) และ Content
+        "fixed left-0 top-0 z-50 h-screen border-r bg-background/95 backdrop-blur-xl flex flex-col transition-all duration-300 ease-in-out",
+        "hidden md:flex",
+        isOpen ? "w-72" : "w-[72px]",
         className
       )}
       {...props}
     >
-      {/* 1. Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b shrink-0">
-        <Link href="/" className="flex items-center gap-2 overflow-hidden">
-          <div className="flex h-8 w-8 min-w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Box size={20} strokeWidth={3} />
+      <div className="flex h-16 items-center justify-center px-4 shrink-0 border-b border-border/40">
+        <Link
+          href="/"
+          className={cn(
+            "flex items-center gap-3 overflow-hidden",
+            !isOpen && "justify-center"
+          )}
+        >
+          <div className="flex h-9 w-9 min-w-[36px] items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shrink-0">
+            <Box size={20} strokeWidth={2.5} />
           </div>
-          <span
+          <div
             className={cn(
-              "font-bold text-lg whitespace-nowrap transition-opacity duration-300",
+              "flex flex-col transition-opacity duration-300",
               isOpen ? "opacity-100" : "opacity-0 w-0 hidden"
             )}
           >
-            CodeXKit
-          </span>
-        </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn("h-8 w-8", !isOpen && "mx-auto")}
-          onClick={toggle}
-        >
-          {isOpen ? <ChevronLeft size={16} /> : <Menu size={16} />}
-        </Button>
-      </div>
-
-      {/* 2. Search Area (แก้ไขตรงนี้) */}
-      <div
-        className={cn(
-          "px-3 py-3 shrink-0",
-          !isOpen && "px-2 flex justify-center"
-        )}
-      >
-        {isOpen ? (
-          <div className="relative group">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder="Search tools..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-12 h-9 text-sm bg-muted/50 transition-colors focus:bg-background" // เพิ่ม pr-12 เว้นที่ให้ Badge
-            />
-            {/* ✅ ปุ่มบอก Keybind: ถ้ามี Text ให้โชว์ปุ่ม X, ถ้าไม่มีให้โชว์ปุ่มลัด */}
-            {searchQuery ? (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            ) : (
-              // Badge บอกปุ่มลัด (แสดงเฉพาะตอนโหลดเสร็จแล้ว)
-              isMounted && (
-                <div className="absolute right-2 top-2 pointer-events-none select-none">
-                  <kbd className="inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                    <span className="text-xs">{isMac ? "⌘" : "Ctrl"}</span>K
-                  </kbd>
-                </div>
-              )
-            )}
+            <span className="font-bold text-base leading-none tracking-tight">
+              CodeXKit
+            </span>
+            <span className="text-[10px] text-muted-foreground font-medium">
+              Dev Tools
+            </span>
           </div>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={toggle}
-            title="Search (Ctrl+K)"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
-        )}
+        </Link>
       </div>
 
-      {/* 3. Navigation Links */}
-      <ScrollArea className="flex-1 px-3">
-        <div className="space-y-1 pb-4">
-          {/* Favorites */}
+      {/* ✅ ใช้ no-scrollbar เพื่อความ Minimal */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 no-scrollbar">
+        <div className="space-y-6">
           {isMounted && favoriteToolsList.length > 0 && (
-            <div className="mb-2">
-              {isOpen ? (
-                <div className="flex items-center gap-2 px-2 py-2 mb-1 text-amber-500/80 font-semibold">
-                  <Star className="h-4 w-4 fill-amber-500/20" />
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Favorites
-                  </span>
+            <div className={cn(!isOpen && "border-b pb-4 mb-2")}>
+              {isOpen && (
+                <div className="px-3 mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
+                  <Star className="w-3 h-3 text-amber-500" /> Favorites
                 </div>
-              ) : (
-                <div className="my-2 border-t border-dashed border-muted-foreground/20 mx-2" />
               )}
               <div className="space-y-0.5">
-                {favoriteToolsList.map((tool) => renderToolItem(tool))}
+                {favoriteToolsList.map((t) => renderToolItem(t, false))}
               </div>
-              <div className="my-3 border-t border-border mx-2 opacity-50" />
             </div>
           )}
 
-          {/* Recent */}
-          {isMounted && recentToolsList.length > 0 && !searchQuery && (
-            <div className="mb-2">
-              {isOpen ? (
-                <div className="flex items-center gap-2 px-2 py-2 mb-1 text-blue-500/80 font-semibold">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Recent
-                  </span>
+          {isMounted && recentToolsList.length > 0 && (
+            <div className={cn(!isOpen && "border-b pb-4 mb-2")}>
+              {isOpen && (
+                <div className="px-3 mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
+                  <Clock className="w-3 h-3 text-blue-500" /> Recent
                 </div>
-              ) : (
-                favoriteToolsList.length === 0 && (
-                  <div className="my-2 border-t border-dashed border-muted-foreground/20 mx-2" />
-                )
               )}
               <div className="space-y-0.5">
-                {recentToolsList.map((tool) => renderToolItem(tool))}
+                {recentToolsList.map((t) => renderToolItem(t, false))}
               </div>
-              <div className="my-3 border-t border-border mx-2 opacity-50" />
             </div>
           )}
 
-          {/* Categories */}
-          {Object.keys(groupedTools).length === 0 &&
-          (isMounted ? favoriteToolsList.length === 0 : true) ? (
-            <div
-              className={cn(
-                "text-xs text-muted-foreground text-center py-4",
-                !isOpen && "hidden"
-              )}
-            >
-              No tools found.
-            </div>
-          ) : (
-            toolCategories.map((category) => {
+          <div>
+            {toolCategories.map((category) => {
               const tools = groupedTools[category.id];
               if (!tools) return null;
               const isCollapsed = collapsedCategories[category.id];
+
               return (
-                <div key={category.id} className="mb-1">
+                <div key={category.id} className="mb-3">
                   {isOpen ? (
                     <Button
                       variant="ghost"
-                      size="sm"
-                      className="w-full justify-between hover:bg-muted/50 mb-0.5 h-8 font-semibold text-muted-foreground hover:text-foreground px-2"
+                      className="w-full flex items-center justify-between h-8 px-3 hover:bg-transparent hover:text-foreground group mb-1"
                       onClick={() => toggleCategory(category.id)}
                     >
-                      <div className="flex items-center gap-2 truncate">
-                        <category.icon className="h-4 w-4 shrink-0" />
-                        <span className="text-xs uppercase tracking-wider">
-                          {category.label}
-                        </span>
-                      </div>
-                      {isCollapsed ? (
-                        <ChevronRight className="h-3 w-3 opacity-50" />
-                      ) : (
-                        <ChevronDown className="h-3 w-3 opacity-50" />
-                      )}
+                      <span className="text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors uppercase tracking-widest">
+                        {category.label}
+                      </span>
+                      <ChevronRight
+                        className={cn(
+                          "h-4 w-4 text-muted-foreground/50 transition-transform duration-200",
+                          !isCollapsed && "rotate-90 text-foreground"
+                        )}
+                      />
                     </Button>
                   ) : (
-                    <div className="my-2 border-t border-dashed border-muted-foreground/20 mx-2" />
+                    <div className="my-2 h-px bg-border/40 w-8 mx-auto" />
                   )}
+
                   <div
                     className={cn(
-                      "space-y-0.5 transition-all duration-200 ease-in-out",
-                      isOpen && isCollapsed ? "hidden" : "block"
+                      "transition-all duration-300 ease-in-out overflow-hidden",
+                      isOpen
+                        ? isCollapsed
+                          ? "max-h-0 opacity-0"
+                          : "max-h-[1000px] opacity-100"
+                        : "opacity-100 max-h-full"
                     )}
                   >
-                    {tools.map((tool) => renderToolItem(tool))}
+                    <div className="pt-1 pb-1">
+                      {tools.map((tool) => renderToolItem(tool, true))}
+                    </div>
                   </div>
                 </div>
               );
-            })
-          )}
+            })}
+          </div>
         </div>
-      </ScrollArea>
+      </div>
 
-      <div className="border-t p-4 mt-auto shrink-0 bg-background">
-        <ThemeToggle isOpen={isOpen} />
+      <div className="p-3 border-t border-border/40 bg-background/50 backdrop-blur-sm shrink-0">
+        <Button
+          variant="ghost"
+          size={isOpen ? "sm" : "icon"}
+          onClick={toggle}
+          className={cn(
+            "w-full text-muted-foreground hover:text-foreground hover:bg-muted/50",
+            !isOpen && "h-9 w-9 mx-auto"
+          )}
+        >
+          {isOpen ? (
+            <>
+              <PanelLeftClose size={16} className="mr-2" />
+              <span className="text-xs font-medium">Collapse</span>
+            </>
+          ) : (
+            <PanelRightClose size={18} />
+          )}
+        </Button>
       </div>
     </aside>
   );

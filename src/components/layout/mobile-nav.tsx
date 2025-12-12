@@ -44,6 +44,22 @@ export function MobileNav() {
     .map((slug) => allTools.find((t) => t.slug === slug))
     .filter((t) => t !== undefined) as typeof allTools;
 
+  // ✅ Fix Hydration Mismatch:
+  // Render ปุ่มธรรมดาก่อนในตอนแรก (Server/Initial Render)
+  // เพื่อไม่ให้ ID ของ SheetTrigger ตีกันกับ Server
+  if (!isMounted) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="md:hidden -ml-2 text-muted-foreground hover:text-foreground"
+      >
+        <Menu className="h-5 w-5" />
+        <span className="sr-only">Toggle Menu</span>
+      </Button>
+    );
+  }
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>

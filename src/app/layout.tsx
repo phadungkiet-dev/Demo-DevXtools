@@ -72,7 +72,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <CommandMenu />
+          {/* <CommandMenu /> */}
           <Toaster />
         </ThemeProvider>
       </body>

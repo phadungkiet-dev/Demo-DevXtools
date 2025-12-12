@@ -1,10 +1,10 @@
 "use client";
 
 import { Sidebar } from "@/components/layout/sidebar";
-import { CommandMenu } from "@/components/layout/command-menu";
-import { SiteHeader } from "@/components/layout/site-header"; // ✅ เพิ่ม 1. Import Header
-import { PageWrapper } from "@/components/layout/page-wrapper"; // ✅ เพิ่ม 2. Import Wrapper
-// ลบ useSidebarStore และ cn ออกได้เลย เพราะย้าย Logic ไปจัดการใน PageWrapper แล้ว
+// ❌ ลบ import CommandMenu บรรทัดนี้ออก (ถ้าไม่ได้ใช้ที่อื่นในไฟล์นี้)
+// import { CommandMenu } from "@/components/layout/command-menu";
+import { SiteHeader } from "@/components/layout/site-header";
+import { PageWrapper } from "@/components/layout/page-wrapper";
 
 export default function MainLayout({
   children,
@@ -12,20 +12,18 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
-      {/* 1. Sidebar (Fixed ซ้าย) */}
+    <div className="min-h-screen bg-background font-sans antialiased">
+      {/* Sidebar Component */}
       <Sidebar />
 
-      {/* 2. Command Menu (Dialog ซ่อนอยู่) */}
-      <CommandMenu />
+      {/* ❌ ลบ <CommandMenu /> ตรงนี้ออกครับ 
+          เพราะมันถูกเรียกใช้ใน SiteHeader ด้านล่างแล้ว 
+      */}
 
-      {/* 3. PageWrapper (จัดการขยับเนื้อหาหนี Sidebar อัตโนมัติ) */}
       <PageWrapper>
-        {/* 4. Topbar (อยู่บนสุด) */}
         <SiteHeader />
 
-        {/* 5. Main Content Area */}
-        <main className="container mx-auto p-6 md:p-8 max-w-7xl">
+        <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-[1600px] animate-in fade-in slide-in-from-bottom-2 duration-500">
           {children}
         </main>
       </PageWrapper>

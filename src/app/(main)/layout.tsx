@@ -1,8 +1,6 @@
 "use client";
 
 import { Sidebar } from "@/components/layout/sidebar";
-// ❌ ลบ import CommandMenu บรรทัดนี้ออก (ถ้าไม่ได้ใช้ที่อื่นในไฟล์นี้)
-// import { CommandMenu } from "@/components/layout/command-menu";
 import { SiteHeader } from "@/components/layout/site-header";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 
@@ -15,10 +13,6 @@ export default function MainLayout({
     <div className="min-h-screen bg-background font-sans antialiased">
       {/* Sidebar Component */}
       <Sidebar />
-
-      {/* ❌ ลบ <CommandMenu /> ตรงนี้ออกครับ 
-          เพราะมันถูกเรียกใช้ใน SiteHeader ด้านล่างแล้ว 
-      */}
 
       <PageWrapper>
         <SiteHeader />

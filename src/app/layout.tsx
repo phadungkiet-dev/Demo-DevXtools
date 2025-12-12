@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import { Geist, Geist_Mono } from "next/font/google"; // Optimized Fonts
+import "./globals.css"; // Global Styles (Tailwind directives)
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { CommandMenu } from "@/components/layout/command-menu";
 
+// Font Configuration
 const fontSans = Geist({
-  variable: "--font-sans",
+  variable: "--font-sans", // ส่งตัวแปร CSS ไปใช้ใน Tailwind
   subsets: ["latin"],
 });
 
@@ -16,12 +16,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Base URL Logic (สำคัญสำหรับ SEO Image)
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL
   ? `https://${process.env.NEXT_PUBLIC_APP_URL}`
-  : "http://localhost:3000";
+  : process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "http://localhost:3030";
 
+// Metadata (Smart SEO)
 export const metadata: Metadata = {
-  metadataBase: new URL(baseUrl),
+  metadataBase: new URL(baseUrl), // กำหนดรากฐานให้ URL ทั้งหมดใน metadata
   title: {
     default: "CodeXKit - All-in-One Developer Tools",
     template: "%s | CodeXKit", // ผลลัพธ์จะเป็น: "ชื่อเครื่องมือ | CodeXKit"
@@ -57,6 +61,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // suppressHydrationWarning: จำเป็นต้องมีเมื่อใช้ next-themes เพื่อกัน Error จังหวะโหลดหน้าเว็บ
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
@@ -65,6 +70,7 @@ export default function RootLayout({
           geistMono.variable
         )}
       >
+        {/* Providers Wrapper */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -72,8 +78,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          {/* <CommandMenu /> */}
-          <Toaster />
+          <Toaster /> {/* Global Toast Notification */}
         </ThemeProvider>
       </body>
     </html>

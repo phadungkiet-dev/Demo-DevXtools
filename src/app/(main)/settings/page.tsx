@@ -22,15 +22,15 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Trash2, Moon, Sun, Monitor, RotateCcw } from "lucide-react";
-import { toast } from "sonner"; // ถ้าคุณมี toast library (ถ้าไม่มีให้ลบออกได้)
 
 export default function SettingsPage() {
+  // Hooks: ดึงฟังก์ชันจัดการ Theme และ Data มาเตรียมไว้
   const { theme, setTheme } = useTheme();
   const { favorites, clearFavorites } = useFavorites();
   const { recents, clearRecents } = useRecentTools();
 
+  // Hydration Fix: ป้องกัน UI กระพริบตอนโหลด Theme
   const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setMounted(true);
@@ -38,6 +38,7 @@ export default function SettingsPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Handlers: ฟังก์ชันกดปุ่ม (พร้อม Confirmation)
   // Handler: Clear Favorites
   const handleClearFavorites = () => {
     if (favorites.length === 0) return;
@@ -58,6 +59,7 @@ export default function SettingsPage() {
 
   return (
     <div className="container max-w-4xl py-10 space-y-8 animate-in fade-in duration-500">
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
@@ -67,14 +69,14 @@ export default function SettingsPage() {
 
       <Separator />
 
-      {/* --- Section 1: Appearance --- */}
+      {/* Appearance Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sun className="h-5 w-5" /> Appearance
           </CardTitle>
           <CardDescription>
-            Customize how DevToolX looks on your device.
+            Customize how CodeXKit looks on your device.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -114,7 +116,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* --- Section 2: Data Management --- */}
+      {/* Data Management Section (Red Zone) */}
       <Card className="border-red-200 dark:border-red-900/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">

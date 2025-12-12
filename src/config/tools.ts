@@ -38,31 +38,72 @@ export interface CategoryConfig {
   id: ToolCategory;
   label: string;
   icon: LucideIcon;
+  description?: string;
 }
 
 // --- Configuration ---
 
 export const toolCategories: CategoryConfig[] = [
-  { id: "text", label: "Text & Content", icon: FileText },
-  { id: "image", label: "Image Tools", icon: ImageIcon },
-  { id: "css", label: "CSS Tools", icon: Code2 },
-  { id: "development", label: "Development", icon: Settings },
-  { id: "security", label: "Security & Auth", icon: ShieldCheck },
-  { id: "converters", label: "Converters", icon: ArrowRightLeft },
-  { id: "devops", label: "DevOps", icon: Terminal },
-  { id: "web", label: "Web & SEO", icon: Globe },
-  { id: "network", label: "Network", icon: Network },
+  {
+    id: "text",
+    label: "Text & Content",
+    icon: FileText,
+    description: "Format, generate, and manipulate text strings easily.",
+  },
+  {
+    id: "image",
+    label: "Image Tools",
+    icon: ImageIcon,
+    description: "Resize, crop, and convert images for the web.",
+  },
+  {
+    id: "css",
+    label: "CSS Tools",
+    icon: Code2,
+    description: "Generators for gradients, shadows, and modern CSS effects.",
+  },
+  {
+    id: "development",
+    label: "Development",
+    icon: Settings,
+    description: "Helpers for JSON, code formatting, and debugging.",
+  },
+  {
+    id: "security",
+    label: "Security & Auth",
+    icon: ShieldCheck,
+    description: "Generate passwords, hashes, and manage keys securely.",
+  },
+  {
+    id: "converters",
+    label: "Converters",
+    icon: ArrowRightLeft,
+    description: "Convert between different data formats and units.",
+  },
+  {
+    id: "devops",
+    label: "DevOps",
+    icon: Terminal,
+    description: "Tools for system administration and deployment tasks.",
+  },
+  {
+    id: "web",
+    label: "Web & SEO",
+    icon: Globe,
+    description: "Optimize and analyze web content for better performance.",
+  },
+  {
+    id: "network",
+    label: "Network",
+    icon: Network,
+    description: "Networking utilities, subnet calculators, and IP tools.",
+  },
 ];
 
 export const toolsByCategory = toolsMap;
 export const allTools: ToolConfig[] = allToolsConfig;
 
 // --- Helpers ---
-
-// export const getToolsByCategory = (category: ToolCategory) => {
-//   return allTools.filter((tool) => tool.category === category);
-// };
-
 export const getToolsByCategory = (category: ToolCategory) =>
   toolsByCategory[category] || [];
 

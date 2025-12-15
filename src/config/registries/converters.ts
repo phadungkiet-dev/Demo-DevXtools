@@ -37,9 +37,34 @@ export const convertersRegistry: Record<string, ComponentType> = {
       (mod) => mod.DateTimeConverter
     )
   ),
-    "roman-numeral-converter": dynamic(() =>
+  "roman-numeral-converter": dynamic(() =>
     import("@/components/tools/converters/roman-numeral-converter").then(
       (mod) => mod.RomanNumeralConverter
+    )
+  ),
+  "base64-string-converter": dynamic(() =>
+    import("@/components/tools/converters/base64-string-converter").then(
+      (mod) => mod.Base64StringConverter
+    )
+  ),
+  "color-format-converter": dynamic(() =>
+    import("@/components/tools/converters/color-format-converter").then(
+      (mod) => mod.ColorFormatConverter
+    )
+  ),
+  "text-to-ascii": dynamic(() =>
+    import("@/components/tools/converters/text-to-ascii").then(
+      (mod) => mod.TextToAsciiConverter
+    )
+  ),
+  "text-to-unicode": dynamic(() =>
+    import("@/components/tools/converters/text-to-unicode").then(
+      (mod) => mod.TextToUnicodeConverter
+    )
+  ),
+  "markdown-to-html": dynamic(() =>
+    import("@/components/tools/converters/markdown-to-html").then(
+      (mod) => mod.MarkdownToHtmlConverter
     )
   ),
 };

@@ -91,8 +91,8 @@ export const convertersTools: ToolConfig[] = [
     icon: Hash,
   },
   {
-    slug: "color-converter",
-    title: "Color Converter",
+    slug: "color-format-converter",
+    title: "Color Format Converter",
     description: "Convert colors between HEX, RGB, HSL, and CMYK.",
     category: "converters",
     icon: Palette,

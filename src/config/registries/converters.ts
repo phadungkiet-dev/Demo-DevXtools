@@ -12,9 +12,34 @@ export const convertersRegistry: Record<string, ComponentType> = {
       (mod) => mod.UnitConverter
     )
   ),
-  "yaml-json-converter": dynamic(() =>
-    import("@/components/tools/converters/yaml-json-converter").then(
-      (mod) => mod.YamlJsonConverter
+  "json-converter": dynamic(() =>
+    import("@/components/tools/converters/json-converter").then(
+      (mod) => mod.JsonConverter
+    )
+  ),
+  "yaml-converter": dynamic(() =>
+    import("@/components/tools/converters/yaml-converter").then(
+      (mod) => mod.YamlConverter
+    )
+  ),
+  "xml-converter": dynamic(() =>
+    import("@/components/tools/converters/xml-converter").then(
+      (mod) => mod.XmlConverter
+    )
+  ),
+  "csv-converter": dynamic(() =>
+    import("@/components/tools/converters/csv-converter").then(
+      (mod) => mod.CsvConverter
+    )
+  ),
+  "date-time-converter": dynamic(() =>
+    import("@/components/tools/converters/date-time-converter").then(
+      (mod) => mod.DateTimeConverter
+    )
+  ),
+    "roman-numeral-converter": dynamic(() =>
+    import("@/components/tools/converters/roman-numeral-converter").then(
+      (mod) => mod.RomanNumeralConverter
     )
   ),
 };

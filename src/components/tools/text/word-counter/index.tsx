@@ -3,6 +3,8 @@
 import { useState, useMemo, ElementType } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+// ✅ 1. Import Textarea จาก UI Component
+import { Textarea } from "@/components/ui/textarea";
 import {
   Trash2,
   ClipboardPaste,
@@ -20,7 +22,6 @@ import { cn } from "@/lib/utils";
 export function WordCounter() {
   const [text, setText] = useState("");
 
-  // Logic: Stats Calculation
   const stats = useMemo(() => {
     const trimmed = text.trim();
     const characters = text.length;
@@ -31,7 +32,6 @@ export function WordCounter() {
     const paragraphs =
       trimmed === "" ? 0 : text.split(/\n+/).filter(Boolean).length;
 
-    // Time calculations
     const readingTime = Math.ceil(words / 200);
     const speakingTime = Math.ceil(words / 130);
 
@@ -46,7 +46,6 @@ export function WordCounter() {
     };
   }, [text]);
 
-  // Handler: Paste
   const handlePaste = async () => {
     try {
       const clipboardText = await navigator.clipboard.readText();
@@ -58,10 +57,8 @@ export function WordCounter() {
   };
 
   return (
-    // ✅ 1. ใช้ Grid Layout เหมือน Lorem Ipsum (สูง 550px บน Desktop)
     <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all">
-      {/* ================= LEFT PANEL: INPUT (2 Columns) ================= */}
-      {/* ใช้โครงสร้าง p-0 + overflow-hidden เหมือน Card ขวาของ Lorem Ipsum */}
+      {/* ================= LEFT PANEL: INPUT ================= */}
       <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0">
         {/* Toolbar Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px]">
@@ -97,7 +94,6 @@ export function WordCounter() {
 
             <div className="w-px h-4 bg-border mx-1" />
 
-            {/* Copy & Download Buttons */}
             <div className="flex items-center gap-1">
               <DownloadButton
                 text={text}
@@ -114,10 +110,11 @@ export function WordCounter() {
 
         {/* Text Area (Input) */}
         <CardContent className="p-0 flex-1 relative min-h-[300px] lg:min-h-0">
-          <textarea
+          {/* ✅ 2. ใช้ Component <Textarea /> แทน <textarea> */}
+          <Textarea
             className={cn(
-              // p-6: คืนระยะห่างให้ข้อความ
-              "w-full h-full resize-none bg-transparent border-none focus:ring-0 p-6 text-base leading-relaxed text-foreground/90 font-serif",
+              // Override Styles: ลบขอบ (border-0), ลบแสงฟุ้ง (ring-0), ปรับ padding และ font
+              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-base leading-relaxed text-foreground/90 font-serif bg-transparent rounded-none shadow-none",
               "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20"
             )}
             value={text}
@@ -128,11 +125,9 @@ export function WordCounter() {
         </CardContent>
       </Card>
 
-      {/* ================= RIGHT PANEL: STATS (1 Column) ================= */}
-      {/* ใช้โครงสร้าง flex-col h-full เหมือน Card ซ้ายของ Lorem Ipsum */}
-      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm p-0">
+      {/* ================= RIGHT PANEL: STATS (No Changes) ================= */}
+      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm">
         <CardContent className="p-6 flex flex-col h-full gap-6">
-          {/* Header */}
           <div className="flex items-center gap-2 pb-2 border-b border-border/50">
             <div className="p-1.5 bg-primary/10 rounded-md text-primary">
               <Hash size={16} />
@@ -140,9 +135,7 @@ export function WordCounter() {
             <h3 className="font-semibold text-sm">Statistics</h3>
           </div>
 
-          {/* Controls Container (Stats List) */}
           <div className="space-y-6 flex-1">
-            {/* Primary Stats (Big Cards) */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-primary/5 border border-primary/10 p-3 rounded-xl text-center flex flex-col items-center justify-center gap-1 min-h-[80px]">
                 <span className="text-2xl font-bold text-primary tracking-tight">
@@ -162,7 +155,6 @@ export function WordCounter() {
               </div>
             </div>
 
-            {/* Detailed Stats List */}
             <div className="space-y-3 pt-2">
               <StatRow
                 label="Chars (no spaces)"
@@ -182,7 +174,6 @@ export function WordCounter() {
             </div>
           </div>
 
-          {/* Footer (Time Stats): ดันลงล่างสุดด้วย mt-auto */}
           <div className="mt-auto pt-4">
             <div className="bg-muted/30 rounded-lg p-4 space-y-3 border border-border/50">
               <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
@@ -209,7 +200,6 @@ export function WordCounter() {
   );
 }
 
-// Helper Component for consistent rows
 function StatRow({
   label,
   value,

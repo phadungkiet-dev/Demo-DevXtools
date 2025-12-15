@@ -1,20 +1,25 @@
 "use client";
 
 import { useState, useMemo } from "react";
+// ✅ 1. Use the UI Textarea component
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, ClipboardPaste, Sparkles } from "lucide-react";
+import {
+  Trash2,
+  ClipboardPaste,
+  Sparkles,
+  Type, // Added icon for consistency
+} from "lucide-react";
 import { transformers, caseLabels, CaseType } from "@/lib/transformers";
 import { CopyButton } from "@/components/shared/copy-button";
 import { DownloadButton } from "@/components/shared/download-button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils"; // Needed for cn()
 
 export function CaseConverter() {
   const [input, setInput] = useState("");
 
-  // Optimization: คำนวณ Stats เฉพาะเมื่อ input เปลี่ยน
   const stats = useMemo(() => {
     return {
       chars: input.length,
@@ -23,7 +28,6 @@ export function CaseConverter() {
     };
   }, [input]);
 
-  // Logic: Paste Handler
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
@@ -35,7 +39,6 @@ export function CaseConverter() {
     }
   };
 
-  // Handler: Demo Text
   const handleDemo = () => {
     setInput("Hello World welcome to CodeXKit");
     toast.info("Demo text loaded");
@@ -43,26 +46,32 @@ export function CaseConverter() {
 
   return (
     <div className="space-y-6">
-      {/* --- Input Section --- */}
-      <div className="space-y-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <Label htmlFor="input-text" className="text-base font-semibold">
-            Input Text
-          </Label>
+      {/* --- Input Section (Refactored to Card + Toolbar) --- */}
+      <Card className="border-border/60 shadow-md flex flex-col overflow-hidden bg-card p-0">
+        {/* Toolbar Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-3 border-b border-border/40 bg-muted/30 min-h-[56px] gap-4 sm:gap-0">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+              <Type size={16} />
+            </div>
+            <span className="text-sm font-semibold text-muted-foreground">
+              Input Text
+            </span>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* ✅ Demo Button */}
+          <div className="flex flex-wrap items-center gap-1">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="text-xs h-8 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary"
+              className="text-xs h-8 text-primary hover:text-primary hover:bg-primary/10"
               onClick={handleDemo}
             >
               <Sparkles className="mr-2 h-3.5 w-3.5" />
-              Data Demo
+              Demo
             </Button>
 
-            {/* Paste Button */}
+            <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
+
             <Button
               variant="ghost"
               size="sm"
@@ -73,7 +82,6 @@ export function CaseConverter() {
               Paste
             </Button>
 
-            {/* Clear Button */}
             <Button
               variant="ghost"
               size="sm"
@@ -87,23 +95,30 @@ export function CaseConverter() {
           </div>
         </div>
 
-        <Textarea
-          id="input-text"
-          placeholder="Type or paste your text here..."
-          className="min-h-[150px] font-mono text-base resize-y shadow-sm focus-visible:ring-primary"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
+        {/* Text Area (Full Bleed) */}
+        <CardContent className="p-0 relative min-h-[150px]">
+          <Textarea
+            id="input-text"
+            className={cn(
+              "w-full h-full min-h-[150px] resize-y border-0 focus-visible:ring-0 p-6 text-base leading-relaxed text-foreground/90 font-mono bg-transparent rounded-none shadow-none",
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20"
+            )}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type or paste your text here to convert case..."
+            spellCheck={false}
+          />
 
-        {/* Stats Bar */}
-        <div className="flex items-center gap-4 text-xs text-muted-foreground justify-end px-1 select-none">
-          <span>{stats.chars} characters</span>
-          <span className="w-px h-3 bg-border" />
-          <span>{stats.words} words</span>
-          <span className="w-px h-3 bg-border" />
-          <span>{stats.lines} lines</span>
-        </div>
-      </div>
+          {/* Stats Overlay (Bottom Right) */}
+          <div className="absolute bottom-2 right-4 flex items-center gap-4 text-[10px] font-mono text-muted-foreground/60 select-none bg-background/50 backdrop-blur-sm px-2 py-1 rounded-md border border-border/20">
+            <span>{stats.chars} chars</span>
+            <span className="w-px h-2 bg-border/50" />
+            <span>{stats.words} words</span>
+            <span className="w-px h-2 bg-border/50" />
+            <span>{stats.lines} lines</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* --- Outputs Grid --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -122,18 +137,18 @@ export function CaseConverter() {
                   </span>
 
                   <div className="flex items-center gap-1">
-                    {/* ใช้ Shared Component แทน */}
                     <DownloadButton
                       text={result}
-                      filename={key} // ชื่อไฟล์จะเป็น snake_case.txt, camelCase.txt ตาม key
-                      className="h-7 w-7"
+                      filename={key}
+                      className="h-7 w-7 text-muted-foreground hover:text-primary"
                     />
-
-                    <CopyButton text={result} className="h-7 w-7" />
+                    <CopyButton
+                      text={result}
+                      className="h-7 w-7 text-muted-foreground hover:text-primary"
+                    />
                   </div>
                 </div>
 
-                {/* Output Area */}
                 <div className="min-h-[3rem] max-h-[150px] overflow-y-auto p-2.5 bg-muted/30 border border-border/50 rounded-md font-mono text-sm break-all relative scrollbar-thin scrollbar-thumb-muted-foreground/20">
                   {result || (
                     <span className="text-muted-foreground/30 italic select-none text-xs">

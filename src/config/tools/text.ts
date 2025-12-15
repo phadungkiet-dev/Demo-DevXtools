@@ -53,6 +53,7 @@ export const textTools: ToolConfig[] = [
     category: "text",
     icon: FileJson,
     keywords: ["json", "pretty", "minify", "parser"],
+    hidden: true,
   },
   {
     slug: "url-encoder",
@@ -61,6 +62,7 @@ export const textTools: ToolConfig[] = [
     category: "text",
     icon: LinkIcon,
     keywords: ["url", "encode", "decode", "uri", "component"],
+    hidden: true,
   },
 
   {
@@ -70,6 +72,7 @@ export const textTools: ToolConfig[] = [
     category: "text",
     icon: Hash,
     keywords: ["base64", "encode", "decode", "binary"],
+    hidden: true,
   },
   {
     slug: "markdown-previewer",
@@ -79,6 +82,7 @@ export const textTools: ToolConfig[] = [
     icon: SquarePen,
     keywords: ["markdown", "preview", "editor", "md", "text"],
     isNew: true,
+    hidden: true,
   },
   {
     slug: "html-entity",
@@ -88,5 +92,6 @@ export const textTools: ToolConfig[] = [
     icon: Code,
     keywords: ["html", "entity", "encode", "decode", "xml", "escape"],
     isNew: true,
+    hidden: true,
   },
 ];

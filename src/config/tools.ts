@@ -32,6 +32,7 @@ export interface ToolConfig {
   icon: LucideIcon;
   isNew?: boolean;
   keywords?: string[];
+  hidden?: boolean;
 }
 
 export interface CategoryConfig {
@@ -101,11 +102,11 @@ export const toolCategories: CategoryConfig[] = [
 ];
 
 export const toolsByCategory = toolsMap;
-export const allTools: ToolConfig[] = allToolsConfig;
+export const allTools: ToolConfig[] = allToolsConfig.filter((t) => !t.hidden);
 
 // --- Helpers ---
 export const getToolsByCategory = (category: ToolCategory) =>
-  toolsByCategory[category] || [];
+  (toolsByCategory[category] || []).filter((tool) => !tool.hidden);
 
 export const getToolBySlug = (slug: string) =>
   allTools.find((tool) => tool.slug === slug);

@@ -98,13 +98,6 @@ export const convertersTools: ToolConfig[] = [
     icon: Palette,
   },
   {
-    slug: "text-to-ascii",
-    title: "Text to ASCII Binary",
-    description: "Convert text to 8-bit binary ASCII code.",
-    category: "converters",
-    icon: Binary,
-  },
-  {
     slug: "text-to-unicode",
     title: "Text to Unicode",
     description: "Convert text to Unicode escape sequences.",

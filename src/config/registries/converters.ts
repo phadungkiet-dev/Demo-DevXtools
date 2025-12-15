@@ -52,11 +52,6 @@ export const convertersRegistry: Record<string, ComponentType> = {
       (mod) => mod.ColorFormatConverter
     )
   ),
-  "text-to-ascii": dynamic(() =>
-    import("@/components/tools/converters/text-to-ascii").then(
-      (mod) => mod.TextToAsciiConverter
-    )
-  ),
   "text-to-unicode": dynamic(() =>
     import("@/components/tools/converters/text-to-unicode").then(
       (mod) => mod.TextToUnicodeConverter

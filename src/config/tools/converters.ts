@@ -26,7 +26,7 @@ export const convertersTools: ToolConfig[] = [
   },
   {
     slug: "unit-converter",
-    title: "Unit Converter (PX/REM)",
+    title: "Unit Converter Universal",
     description:
       "Convert Pixels to REM and vice-versa based on root font-size.",
     category: "converters",

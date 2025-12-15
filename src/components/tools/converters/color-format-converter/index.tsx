@@ -1,222 +1,284 @@
 "use client";
 
-import { useState, useEffect } from "react";
+// =============================================================================
+// Imports
+// =============================================================================
+import { useState, useCallback } from "react";
+// UI Components
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, Pipette, Hash, Copy, Check, RefreshCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Palette, Pipette, RefreshCcw, Info } from "lucide-react";
+// Shared & Utils
 import { CopyButton } from "@/components/shared/copy-button";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-
-// Colord Imports
-import { colord, extend } from "colord";
+// Colord Library (Powerful color manipulation)
+import { colord, extend, Colord } from "colord";
 import cmykPlugin from "colord/plugins/cmyk";
 import namesPlugin from "colord/plugins/names";
+import a11yPlugin from "colord/plugins/a11y"; // สำหรับเช็ค Contrast
 
-// Extend plugins
-extend([cmykPlugin, namesPlugin]);
+// ✅ Extend Plugins: เพิ่มความสามารถให้ colord
+extend([cmykPlugin, namesPlugin, a11yPlugin]);
 
+// =============================================================================
+// Main Component
+// =============================================================================
 export function ColorFormatConverter() {
-  // State หลักเก็บเป็น HEX string
-  const [color, setColor] = useState("#3B82F6"); // Default Blue-500
+  // --- State Management ---
+  // เราแยก State ของแต่ละ Input ออกจากกันเพื่อให้ User สามารถพิมพ์แก้ได้อิสระ
+  // โดยไม่ถูก Override ทันทีที่พิมพ์ไม่เสร็จ
+  const [hex, setHex] = useState("#3B82F6");
+  const [rgb, setRgb] = useState("rgb(59, 130, 246)");
+  const [hsl, setHsl] = useState("hsl(217, 91%, 60%)");
+  const [cmyk, setCmyk] = useState("device-cmyk(76%, 47%, 0%, 4%)");
 
-  // Derived States (คำนวณค่าต่างๆ จาก State หลัก)
-  const [hex, setHex] = useState(color);
-  const [rgb, setRgb] = useState("");
-  const [hsl, setHsl] = useState("");
-  const [cmyk, setCmyk] = useState("");
-  const [name, setName] = useState("");
+  // State สำหรับ Color Object หลักที่ใช้แสดงผล (Preview)
+  const [previewColor, setPreviewColor] = useState<Colord>(colord("#3B82F6"));
+  const [colorName, setColorName] = useState("Blue Ribbon");
 
-  // Sync: เมื่อ color เปลี่ยน -> อัปเดตทุกค่า
-  useEffect(() => {
-    // ✅ ใช้ setTimeout เพื่อแก้ Error setState-in-effect
-    const timer = setTimeout(() => {
-      const c = colord(color);
-      setHex(c.toHex());
-      setRgb(c.toRgbString());
-      setHsl(c.toHslString());
-      setCmyk(c.toCmykString());
-      setName(c.toName({ closest: true }) || "Unknown");
-    }, 0);
+  /**
+   * 🟢 Centralized Update Function
+   * ฟังก์ชันกลางสำหรับอัปเดตทุกค่าเมื่อได้รับ Valid Color
+   * @param colorObj - วัตถุสีจาก colord
+   * @param sourceFormat - รูปแบบต้นทาง (เพื่อไม่ให้ไปทับค่าที่กำลังพิมพ์อยู่)
+   */
+  const syncColors = useCallback((colorObj: Colord, sourceFormat?: string) => {
+    if (!colorObj.isValid()) return;
 
-    return () => clearTimeout(timer);
-  }, [color]);
+    // อัปเดต Preview และชื่อสี
+    setPreviewColor(colorObj);
+    setColorName(colorObj.toName({ closest: true }) || "Unknown Color");
 
-  // Handler: เมื่อ User พิมพ์แก้ค่าในช่องต่างๆ
-  const handleInputChange = (value: string) => {
-    const c = colord(value);
-    if (c.isValid()) {
-      setColor(c.toHex());
+    // อัปเดต Input อื่นๆ ที่ไม่ใช่ต้นทาง (Source)
+    if (sourceFormat !== "hex") setHex(colorObj.toHex());
+    if (sourceFormat !== "rgb") setRgb(colorObj.toRgbString());
+    if (sourceFormat !== "hsl") setHsl(colorObj.toHslString());
+    if (sourceFormat !== "cmyk") setCmyk(colorObj.toCmykString());
+  }, []);
+
+  /**
+   * 🎨 Handlers
+   */
+
+  // จัดการเมื่อ User พิมพ์ใน Input ต่างๆ
+  const handleInputChange = (
+    value: string,
+    format: "hex" | "rgb" | "hsl" | "cmyk"
+  ) => {
+    // 1. อัปเดต State ของ Input นั้นทันที (เพื่อให้ UI ตอบสนองการพิมพ์)
+    switch (format) {
+      case "hex":
+        setHex(value);
+        break;
+      case "rgb":
+        setRgb(value);
+        break;
+      case "hsl":
+        setHsl(value);
+        break;
+      case "cmyk":
+        setCmyk(value);
+        break;
     }
-    // Note: เราไม่อัปเดต input state ทันทีถ้ามัน invalid
-    // เพื่อให้ User พิมพ์ให้เสร็จก่อน (UI จะ update ตามเมื่อ valid)
+
+    // 2. ลอง Parse สีดูว่า Valid ไหม
+    const c = colord(value);
+
+    // 3. ถ้า Valid -> สั่ง Sync ค่าอื่นๆ
+    if (c.isValid()) {
+      syncColors(c, format);
+    }
   };
 
-  const generateRandomColor = () => {
-    const randomColor = colord({
+  // จัดการปุ่ม Random Color
+  const handleRandomColor = () => {
+    const random = colord({
       r: Math.floor(Math.random() * 256),
       g: Math.floor(Math.random() * 256),
       b: Math.floor(Math.random() * 256),
-    }).toHex();
-    setColor(randomColor);
+    });
+    syncColors(random);
+    // ต้อง Force update HEX เพราะไม่มี sourceFormat
+    setHex(random.toHex());
   };
 
+  // จัดการ Native Color Picker Input
+  const handleNativePicker = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    const c = colord(val);
+    syncColors(c, "hex"); // ถือว่า Source คือ Hex
+    setHex(val);
+  };
+
+  // คำนวณ Text Color (Black/White) ตาม Contrast ของพื้นหลัง
+  const textColor = previewColor.isLight() ? "text-slate-900" : "text-white";
+  const borderColor = previewColor.isLight()
+    ? "border-slate-900/20"
+    : "border-white/20";
+
   return (
-    <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all">
-      {/* ================= LEFT: VISUAL PREVIEW ================= */}
-      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px]">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+    <div className="grid gap-6 lg:grid-cols-3 lg:h-[600px] transition-all duration-300 ease-in-out">
+      {/* ================= LEFT PANEL: PREVIEW ================= */}
+      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0 relative group">
+        {/* Header Toolbar */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border/40 bg-muted/30 min-h-[56px] absolute top-0 w-full z-10 backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
               <Palette size={16} />
             </div>
-            <span className="text-sm font-semibold text-muted-foreground">
-              Color Preview
+            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Preview
             </span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={generateRandomColor}
-            title="Random Color"
+            onClick={handleRandomColor}
+            className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
+            title="Randomize Color"
           >
-            <RefreshCcw size={14} className="text-muted-foreground" />
+            <RefreshCcw size={14} />
           </Button>
         </div>
 
-        <CardContent className="p-0 flex-1 relative flex flex-col">
-          {/* Big Color Block */}
+        <CardContent className="p-0 flex-1 relative flex flex-col pt-[56px]">
+          {/* Main Color Block */}
           <div
-            className="flex-1 w-full relative group cursor-pointer transition-all"
-            style={{ backgroundColor: color }}
-            onClick={() => {
-              const input = document.getElementById(
-                "native-color-picker"
-              ) as HTMLInputElement;
-              input?.click();
-            }}
+            className="flex-1 w-full relative transition-colors duration-200 ease-linear cursor-pointer"
+            style={{ backgroundColor: previewColor.toHex() }}
+            onClick={() =>
+              document.getElementById("native-color-picker")?.click()
+            }
           >
-            {/* Hidden Native Input */}
+            {/* Native Picker (Hidden but clickable via label/div) */}
             <input
               type="color"
               id="native-color-picker"
-              value={hex}
-              onChange={(e) => setColor(e.target.value)}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              value={previewColor.toHex()}
+              onChange={handleNativePicker}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-20"
             />
 
-            {/* Overlay Text */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[2px]">
-              <Pipette className="text-white w-8 h-8 mb-2 drop-shadow-md" />
-              <span className="text-white font-medium text-sm drop-shadow-md">
-                Click to Pick
-              </span>
-            </div>
-          </div>
-
-          {/* Color Info Footer */}
-          <div className="p-6 bg-card border-t border-border/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">
-                  Closest Name
-                </p>
-                <p className="text-lg font-bold capitalize text-foreground mt-0.5">
-                  {name}
-                </p>
+            {/* Overlay Instruction */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 backdrop-blur-[1px] z-10 pointer-events-none">
+              <div className="bg-background/90 text-foreground px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                <Pipette size={16} />
+                <span className="text-xs font-bold">Click to Pick</span>
               </div>
-              {/* Contrast Badge (Optional Idea) */}
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">
-                  Contrast
-                </p>
-                <p
+            </div>
+
+            {/* Color Info Overlay (Always visible) */}
+            <div
+              className={cn(
+                "absolute bottom-6 left-6 right-6 flex flex-col gap-1",
+                textColor
+              )}
+            >
+              <p
+                className={cn(
+                  "text-xs font-bold uppercase opacity-60 tracking-wider"
+                )}
+              >
+                Closest Name
+              </p>
+              <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight capitalize drop-shadow-sm">
+                {colorName}
+              </h3>
+
+              {/* Contrast Badges */}
+              <div className="flex items-center gap-2 mt-2">
+                <span
                   className={cn(
-                    "text-sm font-bold px-2 py-0.5 rounded mt-1 inline-block",
-                    colord(color).isLight()
-                      ? "bg-black text-white"
-                      : "bg-white text-black border border-border"
+                    "px-2 py-0.5 rounded text-[10px] font-bold border backdrop-blur-md bg-white/10",
+                    borderColor
                   )}
                 >
-                  {colord(color).isLight() ? "Light" : "Dark"}
-                </p>
+                  {previewColor.isLight() ? "Light" : "Dark"}
+                </span>
+                <span
+                  className={cn(
+                    "px-2 py-0.5 rounded text-[10px] font-bold border backdrop-blur-md bg-white/10",
+                    borderColor
+                  )}
+                >
+                  Lum: {previewColor.luminance().toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* ================= RIGHT: CONVERTERS ================= */}
+      {/* ================= RIGHT PANEL: CONVERTERS ================= */}
       <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm p-0">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px]">
-          <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[56px]">
+          <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
             <RefreshCcw size={16} />
           </div>
           <span className="text-sm font-semibold text-muted-foreground">
-            Converters
+            Format Converters
           </span>
         </div>
 
-        <CardContent className="p-6 flex flex-col gap-6 overflow-y-auto">
-          {/* HEX Input */}
+        <CardContent className="p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+          {/* Input Groups */}
           <ColorInputRow
             label="HEX"
             value={hex}
-            onChange={(val) => {
-              setHex(val); // Update local for typing feel
-              handleInputChange(val);
-            }}
+            onChange={(val) => handleInputChange(val, "hex")}
             placeholder="#000000"
+            copyValue={hex}
           />
 
-          {/* RGB Input */}
           <ColorInputRow
             label="RGB"
             value={rgb}
-            onChange={(val) => {
-              setRgb(val);
-              handleInputChange(val);
-            }}
+            onChange={(val) => handleInputChange(val, "rgb")}
             placeholder="rgb(0, 0, 0)"
+            copyValue={rgb}
           />
 
-          {/* HSL Input */}
           <ColorInputRow
             label="HSL"
             value={hsl}
-            onChange={(val) => {
-              setHsl(val);
-              handleInputChange(val);
-            }}
+            onChange={(val) => handleInputChange(val, "hsl")}
             placeholder="hsl(0, 0%, 0%)"
+            copyValue={hsl}
           />
 
-          {/* CMYK Input */}
           <ColorInputRow
             label="CMYK"
             value={cmyk}
-            onChange={(val) => {
-              setCmyk(val);
-              handleInputChange(val);
-            }}
+            onChange={(val) => handleInputChange(val, "cmyk")}
             placeholder="device-cmyk(0, 0, 0, 1)"
+            copyValue={cmyk}
           />
 
-          {/* CSS Variable Example (Read only) */}
-          <div className="pt-4 border-t border-border/50">
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-3 block">
-              CSS Usage
+          {/* CSS Example Section */}
+          <div className="mt-auto pt-6 border-t border-border/40">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-3 flex items-center gap-2">
+              <Info size={12} />
+              CSS Usage Example
             </Label>
-            <div className="relative group">
-              <code className="block w-full p-4 rounded-lg bg-muted/50 border border-border font-mono text-sm text-foreground">
-                color: {hex}; <br />
-                {"/* or */"} <br />
-                background-color: {rgb};
-              </code>
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <CopyButton text={`color: ${hex};`} />
+            <div className="relative group bg-muted/30 rounded-lg border border-border/50 hover:border-primary/20 transition-colors">
+              <pre className="p-4 text-xs md:text-sm font-mono text-muted-foreground overflow-x-auto">
+                <span className="text-pink-500">.custom-color</span> {"{"}
+                {"\n  "}
+                <span className="text-sky-500">color</span>:{" "}
+                <span className="text-foreground font-semibold">{hex}</span>;
+                {"\n  "}
+                <span className="text-sky-500">background-color</span>:{" "}
+                <span className="text-foreground font-semibold">{rgb}</span>;
+                {"\n"}
+                {"}"}
+              </pre>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <CopyButton
+                  text={`color: ${hex}; background-color: ${rgb};`}
+                  className="h-7 w-7"
+                />
               </div>
             </div>
           </div>
@@ -226,33 +288,46 @@ export function ColorFormatConverter() {
   );
 }
 
-// Helper Component for Input Rows
+// =============================================================================
+// Helper Component (Sub-component)
+// =============================================================================
+
+interface ColorInputRowProps {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  placeholder: string;
+  copyValue: string;
+}
+
 function ColorInputRow({
   label,
   value,
   onChange,
   placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (val: string) => void;
-  placeholder: string;
-}) {
+  copyValue,
+}: ColorInputRowProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 group">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">{label}</Label>
-        {/* Visual Indicator dot */}
-        <div className="w-2 h-2 rounded-full bg-primary/20" />
+        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wide group-focus-within:text-primary transition-colors">
+          {label}
+        </Label>
+        {/* Format Indicator Dot */}
+        <div className="w-1.5 h-1.5 rounded-full bg-primary/20 group-focus-within:bg-primary transition-colors" />
       </div>
       <div className="flex gap-2">
         <Input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="font-mono"
+          className="font-mono text-sm h-10 border-border/60 focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all bg-background/50"
+          spellCheck={false}
         />
-        <CopyButton text={value} className="h-10 w-10 shrink-0" />
+        <CopyButton
+          text={copyValue}
+          className="h-10 w-10 shrink-0 border-border/60 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+        />
       </div>
     </div>
   );

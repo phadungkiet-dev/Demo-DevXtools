@@ -2,6 +2,11 @@ import dynamic from "next/dynamic";
 import { ComponentType } from "react";
 
 export const textRegistry: Record<string, ComponentType> = {
+  "case-converter": dynamic(() =>
+    import("@/components/tools/text/case-converter").then(
+      (mod) => mod.CaseConverter
+    )
+  ),
   "lorem-ipsum": dynamic(() =>
     import("@/components/tools/text/lorem-ipsum").then(
       (mod) => mod.LoremIpsumGenerator
@@ -12,11 +17,10 @@ export const textRegistry: Record<string, ComponentType> = {
       (mod) => mod.WordCounter
     )
   ),
-  "case-converter": dynamic(() =>
-    import("@/components/tools/text/case-converter").then(
-      (mod) => mod.CaseConverter
-    )
+  "diff-viewer": dynamic(() =>
+    import("@/components/tools/text/diff-viewer").then((mod) => mod.DiffViewer)
   ),
+
   "json-formatter": dynamic(() =>
     import("@/components/tools/text/json-formatter").then(
       (mod) => mod.JsonFormatter
@@ -29,9 +33,6 @@ export const textRegistry: Record<string, ComponentType> = {
     import("@/components/tools/text/base64-converter").then(
       (mod) => mod.Base64Converter
     )
-  ),
-  "diff-viewer": dynamic(() =>
-    import("@/components/tools/text/diff-viewer").then((mod) => mod.DiffViewer)
   ),
   "markdown-previewer": dynamic(() =>
     import("@/components/tools/text/markdown-previewer").then(

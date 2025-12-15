@@ -39,6 +39,14 @@ export const textTools: ToolConfig[] = [
     keywords: ["count", "stats", "calculator", "writing", "seo"],
   },
   {
+    slug: "diff-viewer",
+    title: "Text Diff Viewer",
+    description: "Compare two texts and highlight differences line by line.",
+    category: "text",
+    icon: FileDiff,
+    keywords: ["diff", "compare", "git", "text", "check"],
+  },
+  {
     slug: "json-formatter",
     title: "JSON Formatter",
     description: "Validate, format, and minify JSON data.",
@@ -54,14 +62,7 @@ export const textTools: ToolConfig[] = [
     icon: LinkIcon,
     keywords: ["url", "encode", "decode", "uri", "component"],
   },
-  {
-    slug: "diff-viewer",
-    title: "Text Diff Viewer",
-    description: "Compare two texts and highlight differences line by line.",
-    category: "text",
-    icon: FileDiff,
-    keywords: ["diff", "compare", "git", "text", "check"],
-  },
+
   {
     slug: "base64-converter",
     title: "Base64 Encoder",

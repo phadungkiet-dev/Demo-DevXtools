@@ -1,5 +1,11 @@
 import { FormatConverter } from "@/components/shared/format-converter";
 
 export function YamlConverter() {
-  return <FormatConverter defaultInput="yaml" defaultOutput="json" />;
+  return (
+    <FormatConverter
+      defaultInput="yaml"
+      defaultOutput="json"
+      fixedInput={true}
+    />
+  );
 }

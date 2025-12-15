@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRightLeft, Settings2, Trash2 } from "lucide-react";
+import { ArrowRightLeft, Trash2 } from "lucide-react";
 import { CopyButton } from "@/components/shared/copy-button";
 import {
   UNIT_CATEGORIES,
@@ -27,7 +27,6 @@ export function UnitConverter() {
   const [toUnit, setToUnit] = useState<string>("ft");
   const [inputValue, setInputValue] = useState<string>("");
   const [outputValue, setOutputValue] = useState<string>("");
-  const [baseSize, setBaseSize] = useState<number>(16);
 
   // ✅ แก้ Error: สร้าง Handler เพื่อเปลี่ยน Category และ Reset Unit ทันที (ไม่ต้องรอ useEffect)
   const handleCategoryChange = (newCategory: CategoryType) => {
@@ -54,13 +53,7 @@ export function UnitConverter() {
       const val = parseFloat(inputValue);
 
       // เรียกใช้ Logic จาก Lib
-      const result = convertUnitValue(
-        val,
-        fromUnit,
-        toUnit,
-        category,
-        baseSize
-      );
+      const result = convertUnitValue(val, fromUnit, toUnit, category);
 
       // Formatting
       const formatted = Number(result.toPrecision(7)).toString();
@@ -68,7 +61,7 @@ export function UnitConverter() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue, fromUnit, toUnit, category, baseSize]);
+  }, [inputValue, fromUnit, toUnit, category]);
 
   const handleSwap = () => {
     setFromUnit(toUnit);

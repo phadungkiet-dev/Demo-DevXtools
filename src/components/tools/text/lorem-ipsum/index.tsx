@@ -19,14 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 // Icons
-import {
-  RefreshCw,
-  Type,
-  AlignLeft,
-  Hash,
-  Quote,
-  Settings2,
-} from "lucide-react";
+import { RefreshCw, Type, Hash, Quote, Settings2 } from "lucide-react";
 // Shared Components
 import { CopyButton } from "@/components/shared/copy-button";
 import { DownloadButton } from "@/components/shared/download-button";

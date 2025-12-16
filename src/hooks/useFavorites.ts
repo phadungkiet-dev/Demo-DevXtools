@@ -1,55 +1,72 @@
 import { useState, useEffect } from "react";
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
+// =============================================================================
+// Interface: กำหนดโครงสร้างข้อมูลของ Store
+// =============================================================================
+interface FavoritesState {
+  favorites: string[]; // เก็บรายการ Slug ของเครื่องมือที่ชอบ
+  toggleFavorite: (slug: string) => void; // ฟังก์ชันสลับสถานะ (เพิ่ม/ลบ)
+  clearFavorites: () => void; // ล้างรายการทั้งหมด
+}
+
+// =============================================================================
+// Store Definition (Zustand)
+// =============================================================================
+const useFavoritesStore = create<FavoritesState>()(
+  persist(
+    (set) => ({
+      favorites: [],
+
+      // Action: Toggle (Add/Remove)
+      toggleFavorite: (slug) =>
+        set((state) => {
+          const isExist = state.favorites.includes(slug);
+          return {
+            favorites: isExist
+              ? state.favorites.filter((s) => s !== slug) // ถ้ามีแล้ว -> เอาออก
+              : [...state.favorites, slug], // ถ้ายังไม่มี -> เพิ่มเข้าไป
+          };
+        }),
+
+      // Action: Clear All
+      clearFavorites: () => set({ favorites: [] }),
+    }),
+    {
+      name: "codexkit-favorites", // Key ใน LocalStorage
+      storage: createJSONStorage(() => localStorage), // ใช้ LocalStorage
+      skipHydration: true, // ป้องกัน Hydration Error (เราจะจัดการเรื่อง Mount ที่ Component เอง)
+    }
+  )
+);
+
+// =============================================================================
+// Export Hook Wrapper
+// =============================================================================
+// สร้าง Hook ครอบไว้เพื่อให้เรียกใช้ง่าย และคงรูปแบบ Interface เดิมไว้
 export function useFavorites() {
-  // State: เริ่มต้นเป็นอาเรย์ว่างเสมอ เพื่อให้ Server Render ผ่านฉลุย
-  const [favorites, setFavorites] = useState<string[]>([]);
-  // Loading Flag: หัวใจสำคัญ! บอกว่า "โหลดของเก่าเสร็จหรือยัง"
+  const store = useFavoritesStore();
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // --- Effect: Load Data (ทำงานครั้งเดียวตอน Mount) ---
+  // ✅ เพิ่ม Effect นี้: เพื่อสั่ง Rehydrate (โหลดข้อมูล) เมื่อ Mount เสร็จ
   useEffect(() => {
-    // ใช้ setTimeout(..., 0) เพื่อย้ายการทำงานไปที่ Event Loop รอบถัดไป
-    // ช่วยแก้ปัญหา Hydration Warning และ Performance
+    useFavoritesStore.persist.rehydrate();
     const timer = setTimeout(() => {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("codexkit-favorites");
-        if (saved) {
-          try {
-            setFavorites(JSON.parse(saved)); // แปลง JSON กลับเป็น Array
-          } catch (e) {
-            console.error("Failed to parse favorites", e); // กันเหนียวเผื่อไฟล์เสีย
-          }
-        }
-        setIsLoaded(true); // ปลดล็อค! บอกว่าโหลดเสร็จแล้ว พร้อมให้ Save ได้
-      }
+      setIsLoaded(true);
     }, 0);
 
-    return () => clearTimeout(timer); // Cleanup
+    return () => clearTimeout(timer);
   }, []);
 
-  // --- Effect: Save Data (ทำงานเมื่อ favorites เปลี่ยน) ---
-  useEffect(() => {
-    // Guard Clause: ถ้ายังโหลดของเก่าไม่เสร็จ ห้าม Save เด็ดขาด!
-    // เพราะตอนเริ่ม favorites เป็น [] ถ้าเผลอ Save ตอนนี้ ข้อมูลเก่าจะหายหมด
-    if (isLoaded) {
-      localStorage.setItem("codexkit-favorites", JSON.stringify(favorites));
-    }
-  }, [favorites, isLoaded]); // dependencies ครบถ้วน
+  return {
+    // ถ้ายังโหลดไม่เสร็จ ให้ส่ง [] ไปก่อนเพื่อความปลอดภัย
+    favorites: isLoaded ? store.favorites : [],
+    toggleFavorite: store.toggleFavorite,
+    clearFavorites: store.clearFavorites,
 
-  // Helper Functions
-  const toggleFavorite = (toolId: string) => {
-    setFavorites((prev) =>
-      prev.includes(toolId)
-        ? prev.filter((id) => id !== toolId)
-        : [...prev, toolId]
-    );
+    // Helper function
+    isFavorite: (slug: string) =>
+      isLoaded ? store.favorites.includes(slug) : false,
   };
-
-  const clearFavorites = () => {
-    setFavorites([]);
-  };
-
-  const isFavorite = (toolId: string) => favorites.includes(toolId);
-
-  return { favorites, toggleFavorite, isFavorite, clearFavorites };
 }

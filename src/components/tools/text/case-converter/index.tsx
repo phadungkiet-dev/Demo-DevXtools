@@ -22,6 +22,7 @@ import { DownloadButton } from "@/components/shared/download-button";
 // Utils & Libs
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+// Logic (Assumed existing imports)
 import { transformers, caseLabels, CaseType } from "@/lib/transformers";
 
 // =============================================================================
@@ -34,7 +35,7 @@ export function CaseConverter() {
   /**
    * 📊 Derived State: Statistics
    * คำนวณจำนวนตัวอักษร, คำ, และบรรทัด แบบ Real-time
-   * ใช้ useMemo เพื่อป้องกันการคำนวณซ้ำโดยไม่จำเป็น (แม้ว่า cost จะต่ำก็ตาม)
+   * ใช้ useMemo เพื่อป้องกันการคำนวณซ้ำโดยไม่จำเป็น
    */
   const stats = useMemo(() => {
     return {
@@ -161,12 +162,22 @@ export function CaseConverter() {
             >
               <CardContent className="p-4 space-y-3">
                 {/* Output Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between min-h-[28px]">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted px-2.5 py-1 rounded-md border border-border/50 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
                     {caseLabels[key]}
                   </span>
 
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {/* ✅ UX Fix for Mobile:
+                    - opacity-100: แสดงตลอดเวลาบน Mobile (เพื่อให้กดง่าย)
+                    - lg:opacity-0: ซ่อนบน Desktop (หน้าจอใหญ่)
+                    - lg:group-hover:opacity-100: แสดงเมื่อ Hover บน Desktop
+                  */}
+                  <div
+                    className={cn(
+                      "flex items-center gap-1 transition-opacity duration-200",
+                      "opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                    )}
+                  >
                     <DownloadButton
                       text={result}
                       filename={`converted-${key}.txt`}

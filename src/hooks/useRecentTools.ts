@@ -1,53 +1,54 @@
 import { useState, useEffect } from "react";
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-const MAX_RECENTS = 5; // เก็บย้อนหลังสูงสุด 5 รายการ
-const STORAGE_KEY = "codexkit-recents";
+interface RecentToolsState {
+  recents: string[];
+  addRecent: (slug: string) => void;
+  clearRecents: () => void;
+}
+
+const useRecentToolsStore = create<RecentToolsState>()(
+  persist(
+    (set) => ({
+      recents: [],
+
+      addRecent: (slug: string) =>
+        set((state) => {
+          // กรองอันเก่าออก แล้วใส่ใหม่ไว้หน้าสุด (Stack)
+          const filtered = state.recents.filter((s) => s !== slug);
+          const newRecents = [slug, ...filtered].slice(0, 10); // เก็บแค่ 10 อันดับ
+          return { recents: newRecents };
+        }),
+
+      clearRecents: () => set({ recents: [] }),
+    }),
+    {
+      name: "recent-tools-storage",
+      storage: createJSONStorage(() => localStorage),
+      skipHydration: true, // ✅ ยังคงไว้เพื่อกัน Error
+    }
+  )
+);
 
 export function useRecentTools() {
-  const [recents, setRecents] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false); // Flag สำคัญเหมือนเดิม
+  const store = useRecentToolsStore();
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // --- Effect: Load (Safe Hydration) ---
+  // ✅ เพิ่ม Effect นี้: เพื่อสั่ง Rehydrate เมื่อ Mount เสร็จ
   useEffect(() => {
+    useRecentToolsStore.persist.rehydrate();
     const timer = setTimeout(() => {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          try {
-            setRecents(JSON.parse(saved));
-          } catch (e) {
-            console.error("Failed to parse recents", e);
-          }
-        }
-        setIsLoaded(true); // พร้อมทำงานต่อ
-      }
+      setIsLoaded(true);
     }, 0);
+
     return () => clearTimeout(timer);
   }, []);
 
-  // --- Effect: Save (Auto Sync) ---
-  useEffect(() => {
-    if (isLoaded) { // Guard: ป้องกันการเซฟทับข้อมูลเก่าตอนโหลดไม่เสร็จ
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(recents));
-    }
-  }, [recents, isLoaded]);
-
-  // --- Logic หลัก: เพิ่มประวัติ ---
-  const addRecent = (toolSlug: string) => {
-    setRecents((prev) => {
-      // Filter: เอาตัวเดิมออกก่อน (ถ้ามี) เพื่อไม่ให้ซ้ำ และเตรียมย้ายตำแหน่ง
-      const filtered = prev.filter((slug) => slug !== toolSlug);
-
-      // Prepend: เอาตัวใหม่ใส่หน้าสุด
-      // Slice: ตัดให้เหลือแค่ 5 ตัว
-      const newRecents = [toolSlug, ...filtered].slice(0, MAX_RECENTS);
-      return newRecents;
-    });
+  return {
+    // ส่งข้อมูลเปล่าถ้ายังโหลดไม่เสร็จ
+    recents: isLoaded ? store.recents : [],
+    addRecent: store.addRecent,
+    clearRecents: store.clearRecents,
   };
-
-  const clearRecents = () => {
-    setRecents([]);
-  };
-
-  return { recents, addRecent, clearRecents };
 }

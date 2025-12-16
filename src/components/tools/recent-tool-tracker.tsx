@@ -1,19 +1,32 @@
-"use client"; // ทำงานฝั่ง Client (เพราะต้องใช้ Effect และ localStorage ผ่าน Hook)
+"use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRecentTools } from "@/hooks/useRecentTools";
 
-export function RecentToolTracker({ slug }: { slug: string }) {
-  // เรียกใช้ Hook เพื่อเอาฟังก์ชัน addRecent มา
+interface RecentToolTrackerProps {
+  slug: string;
+}
+
+export function RecentToolTracker({ slug }: RecentToolTrackerProps) {
+  // ดึง state และ function มาใช้
   const { addRecent } = useRecentTools();
+  const hasTracked = useRef(false);
 
-  // Effect: ทำงานเมื่อ 'slug' หรือ 'addRecent' เปลี่ยนแปลง
   useEffect(() => {
-    if (slug) {
-      addRecent(slug); // บันทึกว่า "ฉันมาเยี่ยมเยียน tool นี้แล้วนะ"
-    }
-  }, [slug, addRecent]); // Dependency Array สำคัญมาก เพื่อให้ทำงานถูกต้อง
+    if (!slug) return;
 
-  // Render: ไม่แสดงอะไรเลย (Invisible Helper)
+    // ป้องกันการยิงซ้ำใน Strict Mode
+    if (!hasTracked.current) {
+      console.log(`🔍 Tracking Tool: ${slug}`); // ✅ Debug: เช็คว่าทำงานไหม
+      addRecent(slug);
+      hasTracked.current = true;
+    }
+    
+    // Reset เมื่อ slug เปลี่ยน (กรณีเปลี่ยนหน้าเครื่องมือโดยไม่ reload)
+    return () => {
+      hasTracked.current = false;
+    };
+  }, [slug, addRecent]);
+
   return null;
 }

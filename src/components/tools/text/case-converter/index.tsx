@@ -1,25 +1,41 @@
 "use client";
 
+// =============================================================================
+// Imports
+// =============================================================================
 import { useState, useMemo } from "react";
-// ✅ 1. Use the UI Textarea component
-import { Textarea } from "@/components/ui/textarea";
+// UI Components
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+// Icons
 import {
   Trash2,
   ClipboardPaste,
   Sparkles,
-  Type, // Added icon for consistency
+  Type,
+  FileText, // Icon for stats
 } from "lucide-react";
-import { transformers, caseLabels, CaseType } from "@/lib/transformers";
+// Shared Components
 import { CopyButton } from "@/components/shared/copy-button";
 import { DownloadButton } from "@/components/shared/download-button";
+// Utils & Libs
 import { toast } from "sonner";
-import { cn } from "@/lib/utils"; // Needed for cn()
+import { cn } from "@/lib/utils";
+import { transformers, caseLabels, CaseType } from "@/lib/transformers";
 
+// =============================================================================
+// Main Component
+// =============================================================================
 export function CaseConverter() {
+  // --- State Management ---
   const [input, setInput] = useState("");
 
+  /**
+   * 📊 Derived State: Statistics
+   * คำนวณจำนวนตัวอักษร, คำ, และบรรทัด แบบ Real-time
+   * ใช้ useMemo เพื่อป้องกันการคำนวณซ้ำโดยไม่จำเป็น (แม้ว่า cost จะต่ำก็ตาม)
+   */
   const stats = useMemo(() => {
     return {
       chars: input.length,
@@ -28,6 +44,9 @@ export function CaseConverter() {
     };
   }, [input]);
 
+  /**
+   * 📋 Helper: Paste from Clipboard
+   */
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
@@ -39,19 +58,22 @@ export function CaseConverter() {
     }
   };
 
+  /**
+   * 🚀 Helper: Load Demo Text
+   */
   const handleDemo = () => {
-    setInput("Hello World welcome to CodeXKit");
+    setInput("Hello World welcome to CodeXKit Case Converter Tool");
     toast.info("Demo text loaded");
   };
 
   return (
-    <div className="space-y-6">
-      {/* --- Input Section (Refactored to Card + Toolbar) --- */}
-      <Card className="border-border/60 shadow-md flex flex-col overflow-hidden bg-card p-0">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* ================= INPUT SECTION ================= */}
+      <Card className="border-border/60 shadow-md flex flex-col overflow-hidden bg-card p-0 transition-all hover:shadow-lg">
         {/* Toolbar Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-3 border-b border-border/40 bg-muted/30 min-h-[56px] gap-4 sm:gap-0">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
               <Type size={16} />
             </div>
             <span className="text-sm font-semibold text-muted-foreground">
@@ -63,8 +85,9 @@ export function CaseConverter() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs h-8 text-primary hover:text-primary hover:bg-primary/10"
+              className="text-xs h-8 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
               onClick={handleDemo}
+              title="Load Example Text"
             >
               <Sparkles className="mr-2 h-3.5 w-3.5" />
               Demo
@@ -75,7 +98,7 @@ export function CaseConverter() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-foreground"
+              className="text-xs h-8 text-muted-foreground hover:text-foreground hidden sm:flex"
               onClick={handlePaste}
             >
               <ClipboardPaste className="mr-2 h-3.5 w-3.5" />
@@ -85,9 +108,10 @@ export function CaseConverter() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-destructive"
+              className="text-xs h-8 text-muted-foreground hover:text-destructive transition-colors"
               onClick={() => setInput("")}
               disabled={!input}
+              title="Clear Input"
             >
               <Trash2 className="mr-2 h-3.5 w-3.5" />
               Clear
@@ -95,63 +119,75 @@ export function CaseConverter() {
           </div>
         </div>
 
-        {/* Text Area (Full Bleed) */}
-        <CardContent className="p-0 relative min-h-[150px]">
+        {/* Text Area with Stats Overlay */}
+        <CardContent className="p-0 relative min-h-[180px]">
           <Textarea
             id="input-text"
             className={cn(
-              "w-full h-full min-h-[150px] resize-y border-0 focus-visible:ring-0 p-6 text-base leading-relaxed text-foreground/90 font-mono bg-transparent rounded-none shadow-none",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20"
+              "w-full h-full min-h-[180px] resize-y border-0 focus-visible:ring-0 p-6 pb-12 text-base leading-relaxed text-foreground/90 font-mono bg-transparent rounded-none shadow-none",
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20",
+              "placeholder:text-muted-foreground/40"
             )}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type or paste your text here to convert case..."
+            placeholder="Type or paste your text here..."
             spellCheck={false}
           />
 
-          {/* Stats Overlay (Bottom Right) */}
-          <div className="absolute bottom-2 right-4 flex items-center gap-4 text-[10px] font-mono text-muted-foreground/60 select-none bg-background/50 backdrop-blur-sm px-2 py-1 rounded-md border border-border/20">
-            <span>{stats.chars} chars</span>
-            <span className="w-px h-2 bg-border/50" />
+          {/* Real-time Statistics Overlay */}
+          <div className="absolute bottom-3 right-4 flex items-center gap-3 text-[10px] font-mono font-medium text-muted-foreground/70 select-none bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/30 shadow-sm pointer-events-none transition-opacity duration-200">
+            <div className="flex items-center gap-1.5">
+              <FileText size={10} />
+              <span>{stats.chars} chars</span>
+            </div>
+            <span className="w-px h-3 bg-border/50" />
             <span>{stats.words} words</span>
-            <span className="w-px h-2 bg-border/50" />
+            <span className="w-px h-3 bg-border/50" />
             <span>{stats.lines} lines</span>
           </div>
         </CardContent>
       </Card>
 
-      {/* --- Outputs Grid --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* ================= OUTPUTS GRID ================= */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {(Object.keys(transformers) as CaseType[]).map((key) => {
+          // Calculate result on the fly (Fast & Efficient)
           const result = input ? transformers[key](input) : "";
 
           return (
             <Card
               key={key}
-              className="overflow-hidden group hover:border-primary/50 transition-all duration-200 hover:shadow-sm"
+              className="overflow-hidden group hover:border-primary/40 transition-all duration-300 hover:shadow-md bg-card/50"
             >
-              <CardContent className="p-3 space-y-2">
+              <CardContent className="p-4 space-y-3">
+                {/* Output Header */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/50 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted px-2.5 py-1 rounded-md border border-border/50 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
                     {caseLabels[key]}
                   </span>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <DownloadButton
                       text={result}
-                      filename={key}
-                      className="h-7 w-7 text-muted-foreground hover:text-primary"
+                      filename={`converted-${key}.txt`}
+                      className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
                     />
                     <CopyButton
                       text={result}
-                      className="h-7 w-7 text-muted-foreground hover:text-primary"
+                      className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
                     />
                   </div>
                 </div>
 
-                <div className="min-h-[3rem] max-h-[150px] overflow-y-auto p-2.5 bg-muted/30 border border-border/50 rounded-md font-mono text-sm break-all relative scrollbar-thin scrollbar-thumb-muted-foreground/20">
+                {/* Output Display */}
+                <div
+                  className={cn(
+                    "min-h-[4rem] max-h-[160px] overflow-y-auto p-3 rounded-lg border border-border/40 font-mono text-sm break-all relative scrollbar-thin scrollbar-thumb-muted-foreground/20 transition-colors",
+                    result ? "bg-muted/30 text-foreground" : "bg-muted/10"
+                  )}
+                >
                   {result || (
-                    <span className="text-muted-foreground/30 italic select-none text-xs">
+                    <span className="text-muted-foreground/30 italic select-none text-xs flex items-center justify-center h-full">
                       Waiting for input...
                     </span>
                   )}

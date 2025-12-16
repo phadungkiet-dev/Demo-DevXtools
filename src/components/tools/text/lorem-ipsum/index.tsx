@@ -1,6 +1,10 @@
 "use client";
 
+// =============================================================================
+// Imports
+// =============================================================================
 import { useState, useEffect, useMemo } from "react";
+// UI Components
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -13,21 +17,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-// ✅ 1. Import Textarea
 import { Textarea } from "@/components/ui/textarea";
-import { RefreshCw, Type, AlignLeft, Hash, Quote } from "lucide-react";
+// Icons
+import {
+  RefreshCw,
+  Type,
+  AlignLeft,
+  Hash,
+  Quote,
+  Settings2,
+} from "lucide-react";
+// Shared Components
 import { CopyButton } from "@/components/shared/copy-button";
 import { DownloadButton } from "@/components/shared/download-button";
+// Utils & Libs
 import { generateLorem, LoremType } from "@/lib/generators";
 import { cn } from "@/lib/utils";
 
+// =============================================================================
+// Main Component
+// =============================================================================
 export function LoremIpsumGenerator() {
+  // --- State Management ---
   const [count, setCount] = useState<number>(3);
   const [type, setType] = useState<LoremType>("paragraph");
   const [startWithLorem, setStartWithLorem] = useState<boolean>(true);
-  const [seed, setSeed] = useState(0);
+  const [seed, setSeed] = useState(0); // Trigger for manual regeneration
   const [output, setOutput] = useState("");
 
+  /**
+   * 🔄 Effect: Generate Text
+   * ทำงานเมื่อ count, type, settings, หรือ seed เปลี่ยนแปลง
+   * ใช้ setTimeout(0) เพื่อเลื่อนการทำงานไปหลัง render cycle (non-blocking UI)
+   */
   useEffect(() => {
     const timer = setTimeout(() => {
       const text = generateLorem(count, type, startWithLorem);
@@ -36,40 +58,47 @@ export function LoremIpsumGenerator() {
     return () => clearTimeout(timer);
   }, [count, type, startWithLorem, seed]);
 
+  /**
+   * 📊 Derived State: Statistics
+   * คำนวณจำนวนตัวอักษรและคำแบบ Real-time
+   */
   const stats = useMemo(() => {
     if (!output) return { chars: 0, words: 0 };
     return {
       chars: output.length,
+      // Regex split by whitespace for accurate word count
       words: output.trim().split(/\s+/).length,
     };
   }, [output]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all">
-      {/* Left Panel: Settings (เหมือนเดิม) */}
-      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm p-0">
+    // Grid Layout: Mobile Stacked, Desktop Split 1:2 Fixed Height
+    <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all animate-in fade-in duration-500">
+      {/* ================= LEFT PANEL: SETTINGS ================= */}
+      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm p-0 overflow-hidden">
         <CardContent className="p-6 flex flex-col h-full gap-6">
           {/* Header */}
-          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
-              <AlignLeft size={16} />
+          <div className="flex items-center gap-2 pb-4 border-b border-border/50">
+            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
+              <Settings2 size={18} />
             </div>
-            <h3 className="font-semibold text-sm">Configuration</h3>
+            <h3 className="font-bold text-sm text-foreground/80 uppercase tracking-wide">
+              Generator Settings
+            </h3>
           </div>
 
-          {/* Controls */}
-          <div className="space-y-6 flex-1">
-            {/* Type */}
+          {/* Controls Container */}
+          <div className="space-y-6 flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted-foreground/20">
+            {/* Control: Type Selection */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium flex items-center gap-2">
-                <Type size={14} className="text-muted-foreground" /> Generation
-                Type
+              <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
+                <Type size={14} /> Type
               </Label>
               <Select
                 value={type}
                 onValueChange={(v) => setType(v as LoremType)}
               >
-                <SelectTrigger className="w-full h-10 bg-background">
+                <SelectTrigger className="w-full h-10 bg-background/50 border-border/60 focus:ring-primary/20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -80,13 +109,13 @@ export function LoremIpsumGenerator() {
               </Select>
             </div>
 
-            {/* Count */}
+            {/* Control: Count Slider */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Hash size={14} className="text-muted-foreground" /> Quantity
+                <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
+                  <Hash size={14} /> Quantity
                 </Label>
-                <span className="inline-flex items-center justify-center min-w-[2.5rem] h-8 rounded-md bg-background border border-border text-sm font-bold shadow-sm">
+                <span className="inline-flex items-center justify-center min-w-[2.5rem] h-7 rounded bg-primary/10 text-primary text-sm font-bold shadow-sm border border-primary/20">
                   {count}
                 </span>
               </div>
@@ -100,20 +129,32 @@ export function LoremIpsumGenerator() {
               />
             </div>
 
-            {/* Toggle */}
+            {/* Control: Start with Lorem Toggle */}
             <div
-              className="flex items-center justify-between p-3 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer group"
+              className={cn(
+                "flex items-center justify-between p-3 rounded-xl border border-border/40 transition-all cursor-pointer group",
+                startWithLorem
+                  ? "bg-primary/5 border-primary/20"
+                  : "bg-muted/20 hover:bg-muted/40"
+              )}
               onClick={() => setStartWithLorem(!startWithLorem)}
             >
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                <div
+                  className={cn(
+                    "flex items-center justify-center w-9 h-9 rounded-lg transition-colors",
+                    startWithLorem
+                      ? "bg-primary/20 text-primary"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
                   <Quote size={18} className="fill-current" />
                 </div>
                 <div className="space-y-0.5">
                   <Label className="text-sm font-medium cursor-pointer">
                     Start with Lorem
                   </Label>
-                  <p className="text-[11px] text-muted-foreground leading-tight">
+                  <p className="text-[10px] text-muted-foreground leading-tight">
                     Prefix with &quot;Lorem ipsum...&quot;
                   </p>
                 </div>
@@ -121,36 +162,42 @@ export function LoremIpsumGenerator() {
               <Switch
                 checked={startWithLorem}
                 onCheckedChange={setStartWithLorem}
+                className="data-[state=checked]:bg-primary"
               />
             </div>
           </div>
 
-          <div className="mt-auto pt-4">
+          {/* Action Button */}
+          <div className="mt-auto pt-4 border-t border-border/40">
             <Button
-              className="w-full h-11 font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-[0.98]"
+              className="w-full h-11 font-semibold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
               onClick={() => setSeed((s) => s + 1)}
               variant="default"
             >
-              <RefreshCw className="mr-2 h-4 w-4 animate-in spin-in-180 duration-500" />
+              <RefreshCw className="mr-2 h-4 w-4" />
               Regenerate Text
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Right Panel: Output */}
-      <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px]">
+      {/* ================= RIGHT PANEL: OUTPUT ================= */}
+      <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0 transition-all hover:shadow-lg">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px] gap-3">
+          {/* Stats Badges */}
           <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground font-mono">
-            <div className="flex items-center gap-1.5 bg-background px-2.5 py-1 rounded-md border border-border/50 shadow-sm">
+            <div className="flex items-center gap-1.5 bg-background px-3 py-1.5 rounded-md border border-border/50 shadow-sm">
               <span className="text-foreground font-bold">{stats.chars}</span>{" "}
               chars
             </div>
-            <div className="flex items-center gap-1.5 bg-background px-2.5 py-1 rounded-md border border-border/50 shadow-sm">
+            <div className="flex items-center gap-1.5 bg-background px-3 py-1.5 rounded-md border border-border/50 shadow-sm">
               <span className="text-foreground font-bold">{stats.words}</span>{" "}
               words
             </div>
           </div>
+
+          {/* Actions */}
           <div className="flex items-center gap-2">
             <DownloadButton
               text={output}
@@ -164,12 +211,13 @@ export function LoremIpsumGenerator() {
           </div>
         </div>
 
+        {/* Output Textarea */}
         <CardContent className="p-0 flex-1 relative min-h-[300px] lg:min-h-0">
-          {/* ✅ 2. ใช้ Textarea Component */}
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-base leading-relaxed text-foreground/90 font-serif bg-transparent rounded-none shadow-none",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20"
+              "w-full h-full resize-none border-0 focus-visible:ring-0 p-8 text-base leading-relaxed text-foreground/90 font-serif bg-transparent rounded-none shadow-none",
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20",
+              "placeholder:text-muted-foreground/30 italic"
             )}
             value={output}
             readOnly

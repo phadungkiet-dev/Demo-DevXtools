@@ -137,6 +137,7 @@ export const convertersTools: ToolConfig[] = [
     category: "converters",
     icon: CalendarClock,
     keywords: ["time", "date", "timestamp", "unix", "iso", "epoch", "duration"],
+    isNew: true,
   },
   {
     slug: "base64-string-converter",
@@ -146,6 +147,7 @@ export const convertersTools: ToolConfig[] = [
     category: "converters",
     icon: Shield, // โล่ + Code สื่อถึงข้อมูลที่ถูก Encode/Protect ไว้
     keywords: ["base64", "encode", "decode", "binary", "string", "hash"],
+    isNew: true,
   },
   {
     slug: "text-to-unicode",
@@ -155,6 +157,7 @@ export const convertersTools: ToolConfig[] = [
     category: "converters",
     icon: Globe, // ลูกโลก สื่อถึงภาษาและความเป็นสากล (Unicode)
     keywords: ["unicode", "escape", "utf-8", "ascii", "text", "characters"],
+    isNew: true,
   },
   {
     slug: "markdown-to-html",
@@ -164,5 +167,6 @@ export const convertersTools: ToolConfig[] = [
     category: "converters",
     icon: FileCode2, // ไฟล์ที่มี Code สื่อถึงการแปลง Code ไฟล์
     keywords: ["markdown", "html", "compiler", "parser", "md", "preview"],
+    isNew: true,
   },
 ];

@@ -96,6 +96,7 @@ export const textTools: ToolConfig[] = [
       "checker",
       "text difference",
     ],
+    isNew: true,
   },
 
   // 5. JSON Formatter

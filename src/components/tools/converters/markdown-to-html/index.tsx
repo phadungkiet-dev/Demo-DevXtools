@@ -3,25 +3,43 @@
 // =============================================================================
 // Imports
 // =============================================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 // Icons
 import {
-  Trash2,
-  ClipboardPaste,
   FileType,
   Code2,
   Eye,
   FileCode,
-  Sparkles, // Icon for Demo
+  Sparkles,
+  HelpCircle, // Icon for Help/Cheatsheet
 } from "lucide-react";
+
 // Shared Components
-import { CopyButton } from "@/components/shared/buttons/copy-button";
-import { DownloadButton } from "@/components/shared/buttons/download-button";
+import {
+  CopyButton,
+  DownloadButton,
+  PasteButton,
+  ClearButton,
+} from "@/components/shared/buttons";
+
 // Utils & Libs
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -31,71 +49,47 @@ import DOMPurify from "isomorphic-dompurify";
 // =============================================================================
 // Configuration
 // =============================================================================
-// ตั้งค่า marked ให้รองรับการขึ้นบรรทัดใหม่แบบ GitHub (gfm)
 marked.use({
-  breaks: true, // Enter = <br>
-  gfm: true, // GitHub Flavored Markdown
+  breaks: true,
+  gfm: true,
 });
 
 type ViewMode = "code" | "preview";
 
+// =============================================================================
+// Main Component
+// =============================================================================
 export function MarkdownToHtmlConverter() {
   // --- State Management ---
   const [input, setInput] = useState("");
   const [htmlOutput, setHtmlOutput] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("code");
-  const [isConverting, setIsConverting] = useState(false);
+
+  // --- Logic & Effects ---
 
   /**
-   * 🟢 Core Logic: Conversion Function
-   * ฟังก์ชันแปลง Markdown -> HTML โดยแยกออกมาเพื่อเรียกใช้ซ้ำได้
+   * ⚡ Effect: Auto Conversion
    */
-  const processConversion = async (markdown: string) => {
-    if (!markdown.trim()) {
-      setHtmlOutput("");
-      return;
-    }
+  useEffect(() => {
+    const convert = async () => {
+      if (!input.trim()) {
+        setHtmlOutput("");
+        return;
+      }
 
-    setIsConverting(true);
-    try {
-      // 1. Parse Markdown to HTML
-      // marked.parse อาจคืนค่าเป็น Promise ในบาง version/config
-      const rawHtml = await marked.parse(markdown);
+      try {
+        const rawHtml = await marked.parse(input);
+        const cleanHtml = DOMPurify.sanitize(rawHtml);
+        setHtmlOutput(cleanHtml);
+      } catch (error) {
+        console.error("Conversion failed:", error);
+        toast.error("Error converting markdown");
+      }
+    };
 
-      // 2. Sanitize HTML (Critical for Security)
-      // ป้องกันการฝัง Script อันตราย (XSS)
-      const cleanHtml = DOMPurify.sanitize(rawHtml);
-
-      setHtmlOutput(cleanHtml);
-    } catch (error) {
-      console.error("Conversion failed:", error);
-      toast.error("Error converting markdown");
-    } finally {
-      setIsConverting(false);
-    }
-  };
-
-  /**
-   * 🎯 Event Handler: User Typing
-   * เรียกใช้ Logic การแปลงทันที (Event-Driven)
-   */
-  const handleInputChange = (value: string) => {
-    setInput(value);
-    processConversion(value);
-  };
-
-  /**
-   * 📋 Helper: Paste from Clipboard
-   */
-  const handlePaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      handleInputChange(text); // Update & Convert immediately
-      toast.success("Pasted from clipboard");
-    } catch {
-      toast.error("Failed to read clipboard");
-    }
-  };
+    const timer = setTimeout(convert, 300); // Debounce
+    return () => clearTimeout(timer);
+  }, [input]);
 
   /**
    * 🚀 Helper: Load Demo Content
@@ -115,14 +109,14 @@ This is a **markdown** demo using *Next.js 16*.
 console.log("Hello Developer!");
 \`\`\`
 `;
-    handleInputChange(demo);
+    setInput(demo);
   };
 
   return (
-    // Grid Layout: Mobile Stacked, Desktop Split 50/50 Fixed Height
-    <div className="grid gap-6 lg:grid-cols-2 lg:h-[600px] transition-all">
+    // Grid Layout
+    <div className="grid gap-6 lg:grid-cols-2 lg:h-[600px] transition-all animate-in fade-in duration-500">
       {/* ================= LEFT PANEL: MARKDOWN INPUT ================= */}
-      <Card className="flex flex-col h-[350px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md">
+      <Card className="flex flex-col h-full overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 min-h-[60px] gap-3 shrink-0">
           <div className="flex items-center gap-3">
@@ -132,39 +126,23 @@ console.log("Hello Developer!");
             <span className="text-sm font-semibold text-muted-foreground">
               Markdown Input
             </span>
+
+            {/* ℹ️ Cheatsheet Button (เพิ่มตามคำขอ) */}
+            <MarkdownCheatsheet />
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 self-end sm:self-auto">
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs h-8 text-primary hover:text-primary hover:bg-primary/10"
+              className="text-xs h-8 text-primary hover:text-primary hover:bg-primary/10 mr-1"
               onClick={handleDemo}
-              title="Load Demo Text"
             >
               <Sparkles className="mr-2 h-3.5 w-3.5" />
               Demo
             </Button>
-            <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-foreground hidden sm:flex"
-              onClick={handlePaste}
-            >
-              <ClipboardPaste className="mr-2 h-3.5 w-3.5" />
-              Paste
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-destructive"
-              onClick={() => handleInputChange("")}
-              disabled={!input}
-              title="Clear"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            <PasteButton onPaste={setInput} />
+            <ClearButton onClear={() => setInput("")} disabled={!input} />
           </div>
         </div>
 
@@ -172,11 +150,11 @@ console.log("Hello Developer!");
         <CardContent className="p-0 flex-1 relative min-h-0">
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-sm md:text-base leading-relaxed font-mono bg-transparent rounded-none shadow-none",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20 placeholder:text-muted-foreground/30"
+              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-sm md:text-base leading-relaxed font-mono bg-transparent rounded-none shadow-none text-foreground/90",
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent placeholder:text-muted-foreground/30"
             )}
             value={input}
-            onChange={(e) => handleInputChange(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="# Type markdown here..."
             spellCheck={false}
           />
@@ -184,10 +162,11 @@ console.log("Hello Developer!");
       </Card>
 
       {/* ================= RIGHT PANEL: HTML OUTPUT ================= */}
-      <Card className="flex flex-col h-[350px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md">
+      <Card className="flex flex-col h-full overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 min-h-[60px] gap-3 shrink-0">
-          <div className="flex items-center gap-3">
+          {/* View Mode Selector */}
+          <div className="flex items-center gap-2">
             <div
               className={cn(
                 "p-1.5 rounded-md transition-colors",
@@ -199,53 +178,31 @@ console.log("Hello Developer!");
               {viewMode === "code" ? <Code2 size={16} /> : <Eye size={16} />}
             </div>
 
-            {/* View Switcher */}
-            <div className="flex items-center gap-2 bg-background/50 p-1 rounded-lg border border-border/20">
-              <span
-                className={cn(
-                  "text-[10px] font-bold uppercase px-2 py-0.5 rounded transition-all cursor-pointer select-none",
-                  viewMode === "code"
-                    ? "bg-primary/10 text-primary shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={() => setViewMode("code")}
-              >
-                Code
-              </span>
-              <Switch
-                checked={viewMode === "preview"}
-                onCheckedChange={(checked) =>
-                  setViewMode(checked ? "preview" : "code")
-                }
-                className={cn(
-                  "scale-75",
-                  "data-[state=checked]:bg-purple-500 data-[state=unchecked]:bg-primary"
-                )}
-              />
-              <span
-                className={cn(
-                  "text-[10px] font-bold uppercase px-2 py-0.5 rounded transition-all cursor-pointer select-none",
-                  viewMode === "preview"
-                    ? "bg-purple-500/10 text-purple-500 shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={() => setViewMode("preview")}
-              >
-                Preview
-              </span>
-            </div>
+            <Select
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as ViewMode)}
+            >
+              <SelectTrigger className="h-8 min-w-[120px] bg-background text-xs font-medium border-border/60">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="code">HTML Code</SelectItem>
+                <SelectItem value="preview">Live Preview</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center gap-1">
+          {/* Actions */}
+          <div className="flex items-center gap-1 self-end sm:self-auto">
             <DownloadButton
               text={htmlOutput}
               filename="converted.html"
               extension="html"
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
             />
             <CopyButton
               text={htmlOutput}
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
             />
           </div>
         </div>
@@ -257,7 +214,7 @@ console.log("Hello Developer!");
             <Textarea
               className={cn(
                 "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-sm leading-relaxed font-mono bg-transparent rounded-none shadow-none text-muted-foreground",
-                "scrollbar-thin scrollbar-thumb-muted-foreground/20"
+                "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
               )}
               value={htmlOutput}
               readOnly
@@ -267,7 +224,6 @@ console.log("Hello Developer!");
             // --- VIEW: PREVIEW (Rendered HTML) ---
             <div className="w-full h-full overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-muted-foreground/20 bg-background/50">
               {htmlOutput ? (
-                // ใช้ tailwind typography plugin (prose) เพื่อจัด Styles ให้ HTML อัตโนมัติ
                 <article
                   className="prose prose-sm dark:prose-invert max-w-none break-words"
                   dangerouslySetInnerHTML={{ __html: htmlOutput }}
@@ -283,6 +239,58 @@ console.log("Hello Developer!");
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// =============================================================================
+// Helper Component: Markdown Cheatsheet
+// =============================================================================
+function MarkdownCheatsheet() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 rounded-full text-muted-foreground hover:text-foreground"
+          title="Markdown Cheatsheet"
+        >
+          <HelpCircle size={14} />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="start">
+        <div className="p-4 border-b border-border/50 bg-muted/30">
+          <h4 className="font-semibold text-sm">Markdown Guide</h4>
+          <p className="text-xs text-muted-foreground">
+            Common syntax examples
+          </p>
+        </div>
+        <div className="p-2 max-h-[300px] overflow-y-auto text-xs grid gap-1">
+          <CheatsheetItem symbol="# H1" desc="Heading 1" />
+          <CheatsheetItem symbol="## H2" desc="Heading 2" />
+          <CheatsheetItem symbol="**Bold**" desc="Bold Text" />
+          <CheatsheetItem symbol="*Italic*" desc="Italic Text" />
+          <CheatsheetItem symbol="- List" desc="Bullet List" />
+          <CheatsheetItem symbol="1. List" desc="Numbered List" />
+          <CheatsheetItem symbol="> Quote" desc="Blockquote" />
+          <CheatsheetItem symbol="`Code`" desc="Inline Code" />
+          <CheatsheetItem symbol="```js" desc="Code Block" />
+          <CheatsheetItem symbol="[Link](url)" desc="Hyperlink" />
+          <CheatsheetItem symbol="![Alt](img)" desc="Image" />
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function CheatsheetItem({ symbol, desc }: { symbol: string; desc: string }) {
+  return (
+    <div className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
+      <code className="font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
+        {symbol}
+      </code>
+      <span className="text-muted-foreground">{desc}</span>
     </div>
   );
 }

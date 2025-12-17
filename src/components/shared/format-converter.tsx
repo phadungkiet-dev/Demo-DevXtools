@@ -17,13 +17,16 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 // Icons
-import { ArrowRightLeft, Lock, Code2, AlertCircle } from "lucide-react";
+import { ArrowRight, Lock, Code2, AlertCircle } from "lucide-react";
 
-// Shared Components (ใช้ของที่เราทำไว้แล้วเพื่อความ Clean)
-import { CopyButton } from "@/components/shared/buttons/copy-button";
-import { DownloadButton } from "@/components/shared/buttons/download-button";
-import { PasteButton } from "@/components/shared/buttons/paste-button"; // ✅ New
-import { ClearButton } from "@/components/shared/buttons/clear-button"; // ✅ New
+// Shared Components
+import {
+  CopyButton,
+  DownloadButton,
+  PasteButton,
+  ClearButton,
+  SwapButton,
+} from "@/components/shared/buttons";
 
 // Logic & Utils
 import { convertData, DataFormat } from "@/lib/converters";
@@ -39,7 +42,7 @@ interface FormatConverterProps {
   defaultInput: DataFormat;
   /** Format เริ่มต้นของ Output */
   defaultOutput: DataFormat;
-  /** ล็อคไม่ให้เปลี่ยน Format Input หรือไม่ */
+  /** ล็อคไม่ให้เปลี่ยน Format Input หรือไม่ (ถ้าล็อค จะซ่อนปุ่ม Swap) */
   fixedInput?: boolean;
 }
 
@@ -61,42 +64,42 @@ export function FormatConverter({
 
   // --- Handlers ---
 
-  /**
-   * 🔄 จัดการการเปลี่ยน Input Format
-   * Logic: ถ้าเลือก Input Format ตรงกับ Output ให้สลับ Output หนีทันที
-   */
   const handleInputFormatChange = (newFormat: DataFormat) => {
     setInputFormat(newFormat);
-
     if (newFormat === outputFormat) {
-      // ค้นหา Format ตัวถัดไปที่ไม่ใช่ตัวเดิม
       const nextAvailableFormat = SUPPORTED_FORMATS.find(
         (f) => f !== newFormat
       );
-      if (nextAvailableFormat) {
-        setOutputFormat(nextAvailableFormat);
-      }
+      if (nextAvailableFormat) setOutputFormat(nextAvailableFormat);
     }
   };
 
   /**
+   * 🔀 Swap Logic
+   * สลับทั้ง Format และ Content (เอา Output กลับไปเป็น Input)
+   */
+  const handleSwap = () => {
+    if (fixedInput) return; // ป้องกันการ Swap ถ้าถูกล็อค
+
+    setInputFormat(outputFormat);
+    setOutputFormat(inputFormat);
+    setInput(output); // ย้ายผลลัพธ์ไปเป็น Input
+    // Output จะถูกคำนวณใหม่โดย useEffect
+  };
+
+  /**
    * ⚡ Effect: Auto Conversion
-   * ทำงานเมื่อ input หรือ format เปลี่ยนแปลง (มี Delay 500ms เพื่อ Performance)
    */
   useEffect(() => {
     const timer = setTimeout(() => {
-      // 1. ถ้าไม่มี Input ให้เคลียร์ค่า
       if (!input.trim()) {
         setOutput("");
         setError(null);
         return;
       }
 
-      // 2. พยายามแปลงข้อมูล
       try {
         const result = convertData(input, inputFormat, outputFormat);
-
-        // ตรวจสอบว่า Function convertData ส่ง Error String กลับมาหรือไม่
         if (result.startsWith("Error")) {
           setError(result);
           setOutput("");
@@ -105,22 +108,22 @@ export function FormatConverter({
           setError(null);
         }
       } catch (err) {
-        // Fallback Error Handling
         console.error("Conversion Logic Error:", err);
         setError("Conversion failed. Check your input syntax.");
         setOutput("");
       }
-    }, 500); // Debounce delay
+    }, 500);
 
-    return () => clearTimeout(timer); // Cleanup timer เดิมถ้ามีการพิมพ์ใหม่ก่อนครบเวลา
+    return () => clearTimeout(timer);
   }, [input, inputFormat, outputFormat]);
 
   // --- Render ---
   return (
-    <div className="grid gap-6 lg:grid-cols-2 h-[500px] lg:h-[750px] transition-all duration-300">
-      {/* ================= LEFT PANEL: INPUT ================= */}
-      <Card className="flex flex-col h-full overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
-        {/* Toolbar Header */}
+    // ✅ Layout: Flex Column (Mobile) -> Flex Row (Desktop)
+    <div className="flex flex-col lg:flex-row items-stretch lg:h-[750px] gap-4 transition-all duration-300">
+      {/* ================= 1. LEFT CARD (INPUT) ================= */}
+      <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
+        {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 gap-3 min-h-[60px] shrink-0">
           {/* Format Selector */}
           <div className="flex items-center gap-2">
@@ -160,8 +163,8 @@ export function FormatConverter({
             </Select>
           </div>
 
-          {/* Actions: Paste & Clear */}
-          <div className="flex items-center gap-1">
+          {/* Actions */}
+          <div className="flex items-center gap-1 self-end sm:self-auto">
             <PasteButton onPaste={setInput} />
             <ClearButton onClear={() => setInput("")} disabled={!input} />
           </div>
@@ -183,14 +186,29 @@ export function FormatConverter({
         </CardContent>
       </Card>
 
-      {/* ================= RIGHT PANEL: OUTPUT ================= */}
-      <Card className="flex flex-col h-full overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
-        {/* Toolbar Header */}
+      {/* ================= 2. MIDDLE (SWAP BUTTON / ARROW) ================= */}
+      <div className="flex items-center justify-center shrink-0 -my-2 lg:my-0">
+        {fixedInput ? (
+          // ถ้า Fixed Input: แสดงแค่ลูกศรธรรมดา
+          <div className="bg-muted text-muted-foreground p-2 rounded-full border border-border/50 rotate-90 lg:rotate-0">
+            <ArrowRight size={16} />
+          </div>
+        ) : (
+          // ถ้าไม่ Fixed: แสดงปุ่ม Swap
+          <SwapButton
+            onSwap={handleSwap}
+            className="h-10 w-10 border shadow-md bg-background hover:bg-muted text-primary"
+          />
+        )}
+      </div>
+
+      {/* ================= 3. RIGHT CARD (OUTPUT) ================= */}
+      <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
+        {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 gap-3 min-h-[60px] shrink-0">
           {/* Format Selector */}
           <div className="flex items-center gap-2">
-            <ArrowRightLeft size={16} className="text-muted-foreground mx-1" />
-            <span className="text-xs font-medium text-muted-foreground mr-1">
+            <span className="text-xs font-bold text-muted-foreground uppercase mr-1">
               To
             </span>
             <Select
@@ -201,7 +219,6 @@ export function FormatConverter({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {/* Filter out current input format */}
                 {SUPPORTED_FORMATS.filter((f) => f !== inputFormat).map((f) => (
                   <SelectItem key={f} value={f}>
                     {f.toUpperCase()}
@@ -211,17 +228,17 @@ export function FormatConverter({
             </Select>
           </div>
 
-          {/* Actions: Download & Copy */}
-          <div className="flex items-center gap-1">
+          {/* Actions */}
+          <div className="flex items-center gap-1 self-end sm:self-auto">
             <DownloadButton
               text={output}
               filename={`converted.${outputFormat}`}
               extension={outputFormat}
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
             />
             <CopyButton
               text={output}
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
             />
           </div>
         </div>

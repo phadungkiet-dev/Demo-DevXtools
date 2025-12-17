@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowRightLeft, Copy, Trash2, FileCode } from "lucide-react";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 import { toast } from "sonner";
 
 export function HtmlEntityConverter() {

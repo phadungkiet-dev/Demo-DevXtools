@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 
 export function HashGenerator() {
   const [input, setInput] = useState("");

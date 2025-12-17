@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2, FileText, Eye } from "lucide-react";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 
 // --- Basic Markdown Parser (Regex Based) ---
 // หมายเหตุ: สำหรับการใช้งานจริงที่ซับซ้อน แนะนำให้ใช้ library เช่น 'react-markdown'

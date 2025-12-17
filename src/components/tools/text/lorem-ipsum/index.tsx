@@ -21,8 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 // Icons
 import { RefreshCw, Type, Hash, Quote, Settings2 } from "lucide-react";
 // Shared Components
-import { CopyButton } from "@/components/shared/copy-button";
-import { DownloadButton } from "@/components/shared/download-button";
+import { CopyButton, DownloadButton } from "@/components/shared/buttons";
 // Utils & Libs
 import { generateLorem, LoremType } from "@/lib/generators";
 import { cn } from "@/lib/utils";
@@ -190,11 +189,12 @@ export function LoremIpsumGenerator() {
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Actions: Download & Copy */}
           <div className="flex items-center gap-2">
             <DownloadButton
               text={output}
               filename="lorem-ipsum"
+              extension="txt" // กำหนดนามสกุลไฟล์
               className="h-9 w-9 hover:bg-background hover:text-primary transition-colors"
             />
             <CopyButton

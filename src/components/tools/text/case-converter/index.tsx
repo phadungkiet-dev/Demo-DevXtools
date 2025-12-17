@@ -6,23 +6,23 @@
 import { useState, useMemo } from "react";
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-// Icons
+// Icons (เหลือเฉพาะที่ใช้ใน Layout หลัก)
 import {
-  Trash2,
-  ClipboardPaste,
-  Sparkles,
   Type,
   FileText, // Icon for stats
 } from "lucide-react";
 // Shared Components
-import { CopyButton } from "@/components/shared/copy-button";
-import { DownloadButton } from "@/components/shared/download-button";
+import {
+  CopyButton,
+  DownloadButton,
+  DemoButton,
+  PasteButton,
+  ClearButton,
+} from "@/components/shared/buttons";
 // Utils & Libs
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-// Logic (Assumed existing imports)
+// Logic
 import { transformers, caseLabels, CaseType } from "@/lib/transformers";
 
 // =============================================================================
@@ -35,7 +35,6 @@ export function CaseConverter() {
   /**
    * 📊 Derived State: Statistics
    * คำนวณจำนวนตัวอักษร, คำ, และบรรทัด แบบ Real-time
-   * ใช้ useMemo เพื่อป้องกันการคำนวณซ้ำโดยไม่จำเป็น
    */
   const stats = useMemo(() => {
     return {
@@ -46,25 +45,10 @@ export function CaseConverter() {
   }, [input]);
 
   /**
-   * 📋 Helper: Paste from Clipboard
-   */
-  const handlePaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      setInput(text);
-      toast.success("Text pasted from clipboard");
-    } catch (err) {
-      console.error("Clipboard paste failed:", err);
-      toast.error("Failed to read clipboard");
-    }
-  };
-
-  /**
    * 🚀 Helper: Load Demo Text
    */
   const handleDemo = () => {
     setInput("Hello World welcome to CodeXKit Case Converter Tool");
-    toast.info("Demo text loaded");
   };
 
   return (
@@ -82,41 +66,17 @@ export function CaseConverter() {
             </span>
           </div>
 
+          {/* ✅ Refactored Toolbar Buttons: ใช้ Shared Components */}
           <div className="flex flex-wrap items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-8 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
-              onClick={handleDemo}
-              title="Load Example Text"
-            >
-              <Sparkles className="mr-2 h-3.5 w-3.5" />
-              Demo
-            </Button>
+            <DemoButton onDemo={handleDemo} />
 
             <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-foreground hidden sm:flex"
-              onClick={handlePaste}
-            >
-              <ClipboardPaste className="mr-2 h-3.5 w-3.5" />
-              Paste
-            </Button>
+            {/* PasteButton จัดการ Clipboard logic ภายในตัว */}
+            <PasteButton onPaste={setInput} />
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-destructive transition-colors"
-              onClick={() => setInput("")}
-              disabled={!input}
-              title="Clear Input"
-            >
-              <Trash2 className="mr-2 h-3.5 w-3.5" />
-              Clear
-            </Button>
+            {/* ClearButton จัดการ Style สีแดงเมื่อ Hover */}
+            <ClearButton onClear={() => setInput("")} disabled={!input} />
           </div>
         </div>
 
@@ -167,11 +127,7 @@ export function CaseConverter() {
                     {caseLabels[key]}
                   </span>
 
-                  {/* ✅ UX Fix for Mobile:
-                    - opacity-100: แสดงตลอดเวลาบน Mobile (เพื่อให้กดง่าย)
-                    - lg:opacity-0: ซ่อนบน Desktop (หน้าจอใหญ่)
-                    - lg:group-hover:opacity-100: แสดงเมื่อ Hover บน Desktop
-                  */}
+                  {/* UX Fix for Mobile */}
                   <div
                     className={cn(
                       "flex items-center gap-1 transition-opacity duration-200",

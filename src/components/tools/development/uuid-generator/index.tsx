@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { RefreshCw } from "lucide-react";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 
 // 1. แยก Logic การสร้าง UUID ออกมาเป็นฟังก์ชันธรรมดา (Pure Function)
 // เอาไว้นอก Component เพื่อไม่ให้มันถูกสร้างใหม่ทุกครั้งที่ Render

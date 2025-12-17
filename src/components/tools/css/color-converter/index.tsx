@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"; // เปลี่ยน useEffect �
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 
 export function ColorConverter() {
   const [hex, setHex] = useState("#3b82f6");

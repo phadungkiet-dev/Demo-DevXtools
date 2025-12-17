@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowRightLeft, Trash2 } from "lucide-react";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 import {
   UNIT_CATEGORIES,
   CategoryType,

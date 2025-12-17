@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 interface SubnetResult {

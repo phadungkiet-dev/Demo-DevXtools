@@ -5,13 +5,10 @@
 // =============================================================================
 import { useState, useMemo, ElementType } from "react";
 // UI Components
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea"; // Custom Textarea
+import { Textarea } from "@/components/ui/textarea";
 // Icons
 import {
-  Trash2,
-  ClipboardPaste,
   Type,
   AlignLeft,
   Clock,
@@ -19,11 +16,13 @@ import {
   PenTool,
   BarChart3,
 } from "lucide-react";
-// Shared Components
-import { CopyButton } from "@/components/shared/copy-button";
-import { DownloadButton } from "@/components/shared/download-button";
+import {
+  CopyButton,
+  DownloadButton,
+  PasteButton,
+  ClearButton,
+} from "@/components/shared/buttons";
 // Utils & Libs
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
@@ -72,19 +71,6 @@ export function WordCounter() {
     };
   }, [text]);
 
-  /**
-   * 📋 Helper: Paste from Clipboard
-   */
-  const handlePaste = async () => {
-    try {
-      const clipboardText = await navigator.clipboard.readText();
-      setText(clipboardText);
-      toast.success("Text pasted from clipboard");
-    } catch {
-      toast.error("Failed to read clipboard");
-    }
-  };
-
   return (
     // Grid Layout: Mobile Stacked, Desktop Split 2:1 Fixed Height
     <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all animate-in fade-in duration-500">
@@ -101,27 +87,13 @@ export function WordCounter() {
             </span>
           </div>
 
+          {/* ✅ Actions Toolbar: ใช้ Shared Buttons ทั้งหมด */}
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-foreground hidden sm:flex"
-              onClick={handlePaste}
-            >
-              <ClipboardPaste className="mr-2 h-3.5 w-3.5" />
-              Paste
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-destructive transition-colors"
-              onClick={() => setText("")}
-              disabled={!text}
-              title="Clear text"
-            >
-              <Trash2 className="mr-2 h-3.5 w-3.5" />
-              Clear
-            </Button>
+            {/* PasteButton: จัดการ Clipboard + Toast ภายในตัว */}
+            <PasteButton onPaste={setText} />
+
+            {/* ClearButton: จัดการ Toast ภายในตัว */}
+            <ClearButton onClear={() => setText("")} disabled={!text} />
 
             <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
 
@@ -144,7 +116,6 @@ export function WordCounter() {
           <Textarea
             className={cn(
               "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-base leading-relaxed text-foreground/90 bg-transparent rounded-none shadow-none",
-              // ใช้ font-sans หรือ font-serif ตามความชอบ (ที่นี่ใช้ default sans เพื่อความทันสมัย)
               "placeholder:text-muted-foreground/40",
               "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20"
             )}

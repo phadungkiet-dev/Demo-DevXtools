@@ -20,8 +20,8 @@ import {
   Sparkles, // Icon for Demo
 } from "lucide-react";
 // Shared Components
-import { CopyButton } from "@/components/shared/copy-button";
-import { DownloadButton } from "@/components/shared/download-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
+import { DownloadButton } from "@/components/shared/buttons/download-button";
 // Utils & Libs
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

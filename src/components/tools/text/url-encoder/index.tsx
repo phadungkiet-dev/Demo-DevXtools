@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowDownUp, Trash2, Link as LinkIcon, Unlink } from "lucide-react";
 import { toast } from "sonner";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 
 export function UrlEncoder() {
   const [input, setInput] = useState("");

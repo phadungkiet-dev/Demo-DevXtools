@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Palette, RefreshCcw, Info } from "lucide-react";
 // Shared & Utils
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 import { ColorPicker } from "@/components/shared/color-picker"; // ✅ Import Picker ตัวใหม่
 import { cn } from "@/lib/utils";
 // Colord Library

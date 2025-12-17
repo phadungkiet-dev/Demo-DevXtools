@@ -5,25 +5,21 @@
 // =============================================================================
 import { useState, useMemo } from "react";
 // UI Components
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 // Icons
+import { Eye, FileDiff, Search, PenLine } from "lucide-react";
+// Shared Components
 import {
-  Trash2,
-  Copy,
-  Eye,
-  ClipboardPaste,
-  ArrowRightLeft, // For Swap button
-  FileDiff,
-  Search,
-  PenLine,
-} from "lucide-react";
+  CopyButton,
+  PasteButton,
+  ClearButton,
+  SwapButton,
+} from "@/components/shared/buttons";
+
 // Utils & Libs
 import { diffLines, Change } from "diff";
 import { cn } from "@/lib/utils";
-import { CopyButton } from "@/components/shared/copy-button";
-import { toast } from "sonner";
 
 // =============================================================================
 // Main Component
@@ -36,13 +32,9 @@ export function DiffViewer() {
   /**
    * 🔄 Derived State: Diff Calculation
    * ใช้ useMemo เพื่อคำนวณ Diff เฉพาะเมื่อ input เปลี่ยน
-   * diffLines จะเปรียบเทียบทีละบรรทัด (เหมาะกับ Text/Code ทั่วไป)
    */
   const differences: Change[] = useMemo(() => {
-    // ถ้าไม่มีข้อมูลเลย ให้ return array ว่าง
     if (!original && !modified) return [];
-
-    // คำนวณความต่าง
     return diffLines(original, modified);
   }, [original, modified]);
 
@@ -56,26 +48,16 @@ export function DiffViewer() {
   /**
    * 🎮 Handlers
    */
-  const handleClearAll = () => {
-    setOriginal("");
-    setModified("");
-    toast.success("Cleared all inputs");
-  };
-
   const handleSwap = () => {
     setOriginal(modified);
     setModified(original);
-    toast.info("Swapped original and modified text");
   };
 
-  const handlePaste = async (setter: (val: string) => void) => {
-    try {
-      const text = await navigator.clipboard.readText();
-      setter(text);
-      toast.success("Pasted from clipboard");
-    } catch {
-      toast.error("Failed to read clipboard");
-    }
+  const handleClearAll = () => {
+    setOriginal("");
+    setModified("");
+    // Note: ClearButton จะจัดการ Toast ให้เองถ้าเรียกผ่าน onClear
+    // แต่กรณีนี้เราใช้ ClearButton ตัวเดียวคุม 2 input
   };
 
   return (
@@ -89,7 +71,7 @@ export function DiffViewer() {
             title="Original Text"
             icon={Eye}
             onClear={() => setOriginal("")}
-            onPaste={() => handlePaste(setOriginal)}
+            onPaste={setOriginal}
             hasContent={!!original}
           />
           <CardContent className="p-0 flex-1 relative min-h-[150px]">
@@ -105,15 +87,7 @@ export function DiffViewer() {
 
         {/* Swap Button (Centered visually between inputs) */}
         <div className="flex justify-center -my-2 z-10">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSwap}
-            className="rounded-full h-8 w-8 p-0 border-border/60 shadow-sm bg-background hover:bg-muted transition-transform active:scale-95"
-            title="Swap Inputs"
-          >
-            <ArrowRightLeft size={14} className="text-muted-foreground" />
-          </Button>
+          <SwapButton onSwap={handleSwap} />
         </div>
 
         {/* Input 2: Modified */}
@@ -122,7 +96,7 @@ export function DiffViewer() {
             title="Modified Text"
             icon={PenLine}
             onClear={() => setModified("")}
-            onPaste={() => handlePaste(setModified)}
+            onPaste={setModified}
             hasContent={!!modified}
           />
           <CardContent className="p-0 flex-1 relative min-h-[150px]">
@@ -151,17 +125,15 @@ export function DiffViewer() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-8 text-muted-foreground hover:text-destructive transition-colors"
-              onClick={handleClearAll}
+            {/* ✅ ใช้ Shared ClearButton สำหรับ "Clear All" */}
+            <ClearButton
+              onClear={handleClearAll}
               disabled={!original && !modified}
-            >
-              <Trash2 className="mr-2 h-3.5 w-3.5" />
-              Clear All
-            </Button>
+              className="h-8"
+            />
+
             <div className="w-px h-4 bg-border mx-1" />
+
             <CopyButton
               text={rawDiffOutput}
               className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
@@ -229,7 +201,7 @@ interface InputToolbarProps {
   title: string;
   icon: React.ElementType;
   onClear: () => void;
-  onPaste: () => void;
+  onPaste: (text: string) => void;
   hasContent: boolean;
 }
 
@@ -248,25 +220,13 @@ const InputToolbar: React.FC<InputToolbarProps> = ({
       </span>
     </div>
     <div className="flex items-center gap-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-[10px] h-7 px-2 text-muted-foreground hover:text-foreground"
-        onClick={onPaste}
-      >
-        <ClipboardPaste className="mr-1.5 h-3 w-3" />
-        Paste
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-[10px] h-7 px-2 text-muted-foreground hover:text-destructive"
-        onClick={onClear}
+      {/* ✅ Refactored: ใช้ Shared Components */}
+      <PasteButton onPaste={onPaste} className="h-7 text-[10px]" />
+      <ClearButton
+        onClear={onClear}
         disabled={!hasContent}
-      >
-        <Trash2 className="mr-1.5 h-3 w-3" />
-        Clear
-      </Button>
+        className="h-7 text-[10px]"
+      />
     </div>
   </div>
 );

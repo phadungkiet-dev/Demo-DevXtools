@@ -14,7 +14,7 @@ import {
   Calendar,
   Hash,
 } from "lucide-react";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 import {
   format,
   isValid,

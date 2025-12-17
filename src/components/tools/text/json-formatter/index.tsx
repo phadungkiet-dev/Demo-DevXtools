@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Copy, Minimize, Maximize } from "lucide-react";
 import { toast } from "sonner";
-import { CopyButton } from "@/components/shared/copy-button";
+import { CopyButton } from "@/components/shared/buttons/copy-button";
 
 export function JsonFormatter() {
   const [input, setInput] = useState("");

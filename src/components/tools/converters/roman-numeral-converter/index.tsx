@@ -1,31 +1,28 @@
 "use client";
 
+// =============================================================================
+// Imports
+// =============================================================================
 import { useState } from "react";
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 // Icons
-import {
-  Trash2,
-  ClipboardPaste,
-  Type,
-  ArrowRightLeft,
-  Hash,
-  Info,
-} from "lucide-react";
+import { Type, ArrowRightLeft, Hash, Info, AlertCircle } from "lucide-react";
 // Shared Components
-import { CopyButton } from "@/components/shared/buttons/copy-button";
-import { DownloadButton } from "@/components/shared/buttons/download-button";
+import {
+  CopyButton,
+  DownloadButton,
+  PasteButton,
+  ClearButton,
+} from "@/components/shared/buttons";
 // Utils & Libs
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import romans from "romans";
 
-/**
- * Type Definition for Conversion Mode
- * Helps in rendering the correct badge/label in UI
- */
+// =============================================================================
+// Types
+// =============================================================================
 type ConversionMode =
   | "Waiting..."
   | "Number → Roman"
@@ -33,19 +30,22 @@ type ConversionMode =
   | "Invalid"
   | "Out of Range";
 
+// =============================================================================
+// Main Component
+// =============================================================================
 export function RomanNumeralConverter() {
   // --- State Management ---
   const [input, setInput] = useState("");
   const [result, setResult] = useState("");
   const [mode, setMode] = useState<ConversionMode>("Waiting...");
 
+  // --- Logic ---
+
   /**
-   * Core Logic: Handles input changes and triggers conversion immediately.
-   * This approach is better than useEffect because it prevents cascading renders.
+   * 🧠 Core Logic: Handles input changes and triggers conversion immediately.
    */
   const handleInputChange = (value: string) => {
     setInput(value);
-
     const cleanInput = value.trim();
 
     // 1. Empty Case: Reset everything
@@ -60,11 +60,12 @@ export function RomanNumeralConverter() {
       if (/^\d+$/.test(cleanInput)) {
         const num = parseInt(cleanInput, 10);
 
-        // Valid Roman range is typically 1 - 3999 for standard notation
+        // Valid Roman range for standard notation is typically 1 - 3999
         if (num <= 0 || num >= 4000) {
           setResult("Standard Roman numerals are 1-3999");
           setMode("Out of Range");
         } else {
+          // ใช้ Library romans
           const roman = romans.romanize(num);
           setResult(roman);
           setMode("Number → Roman");
@@ -73,6 +74,7 @@ export function RomanNumeralConverter() {
       // 3. Case: Input is Roman Letters (Checking valid chars)
       else if (/^[MDCLXVImdclxvi]+$/.test(cleanInput)) {
         try {
+          // ใช้ Library romans
           const num = romans.deromanize(cleanInput.toUpperCase());
           setResult(num.toString());
           setMode("Roman → Number");
@@ -93,25 +95,12 @@ export function RomanNumeralConverter() {
     }
   };
 
-  /**
-   * Helper: Handles pasting from clipboard
-   */
-  const handlePaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      handleInputChange(text); // Call logic immediately after paste
-      toast.success("Pasted from clipboard");
-    } catch {
-      toast.error("Failed to read clipboard");
-    }
-  };
-
   return (
-    // Grid Layout: Mobile = Auto height, Desktop = Fixed height (550px)
-    <div className="grid gap-6 lg:grid-cols-2 lg:h-[550px] transition-all">
+    // Grid Layout: Mobile Stack, Desktop 2 Columns Fixed Height
+    <div className="grid gap-6 lg:grid-cols-2 lg:h-[550px] transition-all animate-in fade-in duration-500">
       {/* ================= LEFT PANEL: INPUT ================= */}
-      <Card className="flex flex-col h-[300px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md">
-        {/* --- Toolbar --- */}
+      <Card className="flex flex-col h-[300px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
+        {/* Toolbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 min-h-[60px] shrink-0">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-primary/10 rounded-md text-primary">
@@ -123,33 +112,20 @@ export function RomanNumeralConverter() {
           </div>
 
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 text-muted-foreground hover:text-foreground hidden sm:flex"
-              onClick={handlePaste}
-            >
-              <ClipboardPaste className="mr-2 h-3.5 w-3.5" />
-              Paste
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 px-0 text-muted-foreground hover:text-destructive"
-              onClick={() => handleInputChange("")}
+            {/* ✅ ใช้ Shared Buttons แทนการเขียนปุ่มเอง */}
+            <PasteButton onPaste={handleInputChange} />
+            <ClearButton
+              onClear={() => handleInputChange("")}
               disabled={!input}
-              title="Clear"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            />
           </div>
         </div>
 
-        {/* --- Input Area --- */}
+        {/* Input Area */}
         <CardContent className="p-0 flex-1 relative min-h-0">
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-base md:text-lg leading-relaxed font-mono bg-transparent rounded-none shadow-none",
+              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-base md:text-lg leading-relaxed font-mono bg-transparent rounded-none shadow-none text-foreground",
               "scrollbar-thin scrollbar-thumb-muted-foreground/20 placeholder:text-muted-foreground/30"
             )}
             value={input}
@@ -166,8 +142,8 @@ export function RomanNumeralConverter() {
       </Card>
 
       {/* ================= RIGHT PANEL: OUTPUT ================= */}
-      <Card className="flex flex-col h-[300px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md">
-        {/* --- Toolbar --- */}
+      <Card className="flex flex-col h-[300px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
+        {/* Toolbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 min-h-[60px] shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-1.5 bg-primary/10 rounded-md text-primary">
@@ -198,19 +174,23 @@ export function RomanNumeralConverter() {
           </div>
         </div>
 
-        {/* --- Result Display --- */}
+        {/* Result Display */}
         <CardContent className="p-0 flex-1 relative bg-muted/10 min-h-0 flex flex-col items-center justify-center text-center">
           {result ? (
             <div className="w-full px-8 space-y-4 animate-in zoom-in-95 duration-200">
               <span
                 className={cn(
-                  "block font-bold tracking-tight break-all leading-tight",
+                  "block font-bold tracking-tight break-all leading-tight transition-colors duration-300",
                   // Conditional Styling based on Error/Success
                   mode === "Invalid" || mode === "Out of Range"
                     ? "text-destructive text-xl md:text-2xl"
                     : "text-foreground text-5xl md:text-7xl"
                 )}
               >
+                {/* Show Alert Icon if Error */}
+                {(mode === "Invalid" || mode === "Out of Range") && (
+                  <AlertCircle className="inline-block mr-2 mb-1" size={24} />
+                )}
                 {result}
               </span>
 
@@ -226,7 +206,7 @@ export function RomanNumeralConverter() {
             </div>
           ) : (
             // Empty State
-            <div className="text-muted-foreground/30 flex flex-col items-center gap-4 select-none">
+            <div className="text-muted-foreground/30 flex flex-col items-center gap-4 select-none animate-in fade-in duration-500">
               <div className="p-4 rounded-full bg-muted/20">
                 <Hash size={48} strokeWidth={1.5} />
               </div>

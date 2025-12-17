@@ -3,32 +3,47 @@
 // =============================================================================
 // Imports
 // =============================================================================
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 // Icons
 import {
-  Trash2,
-  ClipboardPaste,
-  Languages, // แทน Text ธรรมดา
-  Code2, // แทน Code/Unicode
+  Languages,
+  Code2,
+  ArrowRightLeft,
   AlertCircle,
 } from "lucide-react";
+
 // Shared Components
-import { CopyButton } from "@/components/shared/buttons/copy-button";
-import { DownloadButton } from "@/components/shared/buttons/download-button";
-// Utils
-import { toast } from "sonner";
+import {
+  CopyButton,
+  DownloadButton,
+  PasteButton,
+  ClearButton,
+  SwapButton,
+} from "@/components/shared/buttons";
+
+// Utils & Libs
 import { cn } from "@/lib/utils";
 
 // =============================================================================
-// Types & Interfaces
+// Types
 // =============================================================================
 type ConversionMode = "text-to-unicode" | "unicode-to-text";
 
+// =============================================================================
+// Main Component
+// =============================================================================
 export function TextToUnicodeConverter() {
   // --- State Management ---
   const [input, setInput] = useState("");
@@ -36,96 +51,77 @@ export function TextToUnicodeConverter() {
   const [mode, setMode] = useState<ConversionMode>("text-to-unicode");
   const [error, setError] = useState<string | null>(null);
 
+  // --- Logic & Effects ---
+
   /**
-   * 🟢 Core Logic: Conversion Function
-   * แยก Logic การคำนวณออกมาเพื่อความสะอาดและเรียกใช้ซ้ำได้ง่าย
+   * 🔀 Swap Logic
    */
-  const convertData = (text: string, currentMode: ConversionMode) => {
-    // 1. Empty Check
-    if (!text) return { result: "", err: null };
+  const handleSwap = () => {
+    setInput(output);
+    setMode((prev) => 
+      prev === "text-to-unicode" ? "unicode-to-text" : "text-to-unicode"
+    );
+  };
 
-    try {
-      let result = "";
-
-      if (currentMode === "text-to-unicode") {
-        // Case: Text -> Unicode Escape (\uXXXX)
-        // ใช้ charCodeAt(0) และแปลงเป็นฐาน 16 พร้อม padding
-        result = text
-          .split("")
-          .map((char) => {
-            const code = char.charCodeAt(0).toString(16).toUpperCase();
-            return "\\u" + code.padStart(4, "0");
-          })
-          .join("");
-      } else {
-        // Case: Unicode Escape -> Text
-        // ใช้ Regex จับ pattern \uXXXX แล้วแปลงกลับเป็น char
-        result = text.replace(/\\u[\dA-F]{4}/gi, (match) => {
-          return String.fromCharCode(parseInt(match.replace(/\\u/g, ""), 16));
-        });
-
-        // Validation Check:
-        // ถ้า Input มีคำว่า \u แต่ผลลัพธ์เหมือนเดิม (replace ไม่ได้) แสดงว่า Format ผิด
-        // หรือถ้าอยากเข้มงวดกว่านี้อาจจะเช็ค Regex ตั้งแต่ต้น
-        if (text.includes("\\u") && result === text && text.length > 0) {
-          // อาจจะไม่ใช่ Error ร้ายแรง แต่แจ้งเตือนได้ถ้าต้องการ
-          // ในที่นี้เราปล่อยผ่านเพื่อให้ User พิมพ์ผสม Text ธรรมดาได้
-        }
+  /**
+   * ⚡ Effect: Auto Conversion
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // 1. Empty Check
+      if (!input) {
+        setOutput("");
+        setError(null);
+        return;
       }
 
-      return { result, err: null };
-    } catch {
-      return { result: "", err: "Invalid format" };
-    }
-  };
+      try {
+        let result = "";
 
-  /**
-   * 🎯 Event Handler: User Typing
-   * คำนวณผลลัพธ์ทันทีเมื่อมีการเปลี่ยนแปลง (Event-Driven)
-   */
-  const handleInputChange = (value: string) => {
-    setInput(value);
-    const { result, err } = convertData(value, mode);
-    setOutput(result);
-    setError(err);
-  };
+        if (mode === "text-to-unicode") {
+          // Text -> Unicode (\uXXXX)
+          result = input
+            .split("")
+            .map((char) => {
+              const code = char.charCodeAt(0).toString(16).toUpperCase();
+              return "\\u" + code.padStart(4, "0");
+            })
+            .join("");
+        } else {
+          // Unicode -> Text
+          // Basic Regex check for \uXXXX pattern
+          if (!/(\\u[\dA-F]{4})/gi.test(input)) {
+             // ถ้าไม่มี pattern unicode เลย ให้เตือน (แต่พยายามแปลงส่วนที่ได้)
+             // หรือจะ throw error เลยก็ได้ตามต้องการ
+          }
 
-  /**
-   * 🔄 Event Handler: Mode Switching
-   * เมื่อสลับโหมด ให้นำ Input เดิมมาคำนวณใหม่ในโหมดใหม่ทันที
-   */
-  const handleModeToggle = (checked: boolean) => {
-    const newMode = checked ? "unicode-to-text" : "text-to-unicode";
-    setMode(newMode);
+          result = input.replace(/\\u[\dA-F]{4}/gi, (match) => {
+            return String.fromCharCode(parseInt(match.replace(/\\u/g, ""), 16));
+          });
+        }
 
-    // Re-calculate with existing input
-    const { result, err } = convertData(input, newMode);
-    setOutput(result);
-    setError(err);
-  };
+        setOutput(result);
+        setError(null);
+      } catch {
+        setOutput("");
+        setError("Invalid format");
+      }
+    }, 300); // Debounce
 
-  /**
-   * 📋 Helper: Paste Clipboard
-   */
-  const handlePaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      handleInputChange(text); // Process immediately
-      toast.success("Pasted from clipboard");
-    } catch {
-      toast.error("Failed to read clipboard");
-    }
-  };
+    return () => clearTimeout(timer);
+  }, [input, mode]);
 
   return (
-    // Grid Layout: Mobile Stacked, Desktop Split 50/50 with Fixed Height
-    <div className="grid gap-6 lg:grid-cols-2 lg:h-[600px] transition-all">
+    // ✅ Layout: Flex Column (Mobile) -> Flex Row (Desktop)
+    <div className="flex flex-col lg:flex-row items-stretch lg:h-[600px] gap-4 transition-all animate-in fade-in duration-500">
+      
       {/* ================= LEFT PANEL: INPUT ================= */}
-      <Card className="flex flex-col h-[350px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md">
+      <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 min-h-[60px] gap-3 shrink-0">
-          <div className="flex items-center gap-3">
-            {/* Mode Icon Indicator */}
+          
+          {/* Mode Selector */}
+          <div className="flex items-center gap-2">
             <div
               className={cn(
                 "p-1.5 rounded-md transition-colors",
@@ -141,61 +137,24 @@ export function TextToUnicodeConverter() {
               )}
             </div>
 
-            {/* Smart Mode Switcher */}
-            <div className="flex items-center gap-2 bg-background/50 p-1 rounded-lg border border-border/20">
-              <span
-                className={cn(
-                  "text-[10px] font-bold uppercase px-2 py-0.5 rounded transition-all cursor-pointer select-none",
-                  mode === "text-to-unicode"
-                    ? "bg-blue-500/10 text-blue-500 shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={() => handleModeToggle(false)}
-              >
-                Text
-              </span>
-              <Switch
-                checked={mode === "unicode-to-text"}
-                onCheckedChange={handleModeToggle}
-                className={cn(
-                  "scale-75 data-[state=checked]:bg-purple-500",
-                  "data-[state=unchecked]:bg-blue-500"
-                )}
-              />
-              <span
-                className={cn(
-                  "text-[10px] font-bold uppercase px-2 py-0.5 rounded transition-all cursor-pointer select-none",
-                  mode === "unicode-to-text"
-                    ? "bg-purple-500/10 text-purple-500 shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={() => handleModeToggle(true)}
-              >
-                Unicode
-              </span>
-            </div>
+            <Select
+              value={mode}
+              onValueChange={(v) => setMode(v as ConversionMode)}
+            >
+              <SelectTrigger className="h-8 min-w-[150px] bg-background text-xs font-medium border-border/60">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text-to-unicode">Text → Unicode</SelectItem>
+                <SelectItem value="unicode-to-text">Unicode → Text</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 text-muted-foreground hover:text-foreground hidden sm:flex"
-              onClick={handlePaste}
-            >
-              <ClipboardPaste className="mr-2 h-3.5 w-3.5" />
-              Paste
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 px-0 text-muted-foreground hover:text-destructive"
-              onClick={() => handleInputChange("")}
-              disabled={!input}
-              title="Clear"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+          {/* Actions */}
+          <div className="flex items-center gap-1 self-end sm:self-auto">
+            <PasteButton onPaste={setInput} />
+            <ClearButton onClear={() => setInput("")} disabled={!input} />
           </div>
         </div>
 
@@ -203,12 +162,13 @@ export function TextToUnicodeConverter() {
         <CardContent className="p-0 flex-1 relative min-h-0">
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-sm md:text-base leading-relaxed font-mono bg-transparent rounded-none shadow-none",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20",
-              error ? "text-destructive" : "text-foreground"
+              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-sm md:text-base leading-relaxed font-mono bg-transparent rounded-none shadow-none text-foreground/90",
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+              "placeholder:text-muted-foreground/40",
+              error && "text-destructive"
             )}
             value={input}
-            onChange={(e) => handleInputChange(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             placeholder={
               mode === "text-to-unicode"
                 ? "Type text here (e.g., Hello ภาษาไทย)..."
@@ -216,6 +176,8 @@ export function TextToUnicodeConverter() {
             }
             spellCheck={false}
           />
+
+          {/* Error Badge */}
           {error && (
             <div className="absolute bottom-4 right-4 flex items-center gap-2 text-xs text-destructive font-medium bg-destructive/10 px-3 py-1.5 rounded-md border border-destructive/20 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2">
               <AlertCircle size={14} />
@@ -225,46 +187,48 @@ export function TextToUnicodeConverter() {
         </CardContent>
       </Card>
 
+      {/* ================= MIDDLE: SWAP BUTTON ================= */}
+      <div className="flex items-center justify-center shrink-0 -my-2 lg:my-0">
+        <SwapButton 
+          onSwap={handleSwap} 
+          className="h-10 w-10 border shadow-md bg-background hover:bg-muted text-primary"
+        />
+      </div>
+
       {/* ================= RIGHT PANEL: OUTPUT ================= */}
-      <Card className="flex flex-col h-[350px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md">
+      <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
         {/* Toolbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 min-h-[60px] shrink-0">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <ArrowRightLeft size={16} className="text-muted-foreground mx-1" />
             <div
               className={cn(
                 "p-1.5 rounded-md transition-colors",
-                mode === "unicode-to-text"
+                mode === "unicode-to-text" // Output mode is opposite of Input
                   ? "bg-blue-500/10 text-blue-500"
                   : "bg-purple-500/10 text-purple-500"
               )}
             >
-              {mode === "unicode-to-text" ? (
+               {mode === "unicode-to-text" ? (
                 <Languages size={16} />
               ) : (
                 <Code2 size={16} />
               )}
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-muted-foreground">
-                Result
-              </span>
-              <span className="text-[10px] text-muted-foreground/60">
-                {mode === "text-to-unicode"
-                  ? "Escaped Sequence"
-                  : "Decoded String"}
-              </span>
-            </div>
+            <span className="text-sm font-semibold text-muted-foreground">
+              {mode === "text-to-unicode" ? "Unicode Result" : "Decoded Text"}
+            </span>
           </div>
 
           <div className="flex items-center gap-1">
             <DownloadButton
               text={output}
               filename={mode === "text-to-unicode" ? "unicode.txt" : "text.txt"}
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
             />
             <CopyButton
               text={output}
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
             />
           </div>
         </div>
@@ -273,8 +237,9 @@ export function TextToUnicodeConverter() {
         <CardContent className="p-0 flex-1 relative bg-muted/10 min-h-0">
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-sm md:text-base leading-relaxed font-mono bg-transparent rounded-none shadow-none text-muted-foreground",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20"
+              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-sm md:text-base leading-relaxed font-mono bg-transparent rounded-none shadow-none",
+              "text-muted-foreground focus:text-foreground transition-colors",
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
             )}
             value={output}
             readOnly

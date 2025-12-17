@@ -8,13 +8,12 @@ import { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Palette, RefreshCcw, Info } from "lucide-react";
-// Shared & Utils
-import { CopyButton } from "@/components/shared/buttons/copy-button";
-import { ColorPicker } from "@/components/shared/color-picker"; // ✅ Import Picker ตัวใหม่
+import { Palette, Info, Logs } from "lucide-react";
+// Shared Components
+import { CopyButton, RegenerateButton } from "@/components/shared/buttons";
+import { ColorPicker } from "@/components/shared/color-picker";
+// Utils & Libs
 import { cn } from "@/lib/utils";
-// Colord Library
 import { colord, extend, Colord } from "colord";
 import cmykPlugin from "colord/plugins/cmyk";
 import namesPlugin from "colord/plugins/names";
@@ -58,6 +57,7 @@ export function ColorFormatConverter() {
     value: string,
     format: "hex" | "rgb" | "hsl" | "cmyk"
   ) => {
+    // Update local state immediately for responsiveness
     switch (format) {
       case "hex":
         setHex(value);
@@ -73,6 +73,7 @@ export function ColorFormatConverter() {
         break;
     }
 
+    // Sync other formats if valid
     const c = colord(value);
     if (c.isValid()) {
       syncColors(c, format);
@@ -89,13 +90,13 @@ export function ColorFormatConverter() {
     setHex(random.toHex());
   };
 
-  // ✅ Handler ใหม่สำหรับ ColorPicker (รับค่า Hex โดยตรง)
   const handleColorPickerChange = (newColor: string) => {
     const c = colord(newColor);
     syncColors(c, "hex");
     setHex(newColor);
   };
 
+  // Dynamic Styles
   const textColor = previewColor.isLight() ? "text-slate-900" : "text-white";
   const borderColor = previewColor.isLight()
     ? "border-slate-900/20"
@@ -104,7 +105,6 @@ export function ColorFormatConverter() {
   return (
     <div className="grid gap-6 lg:grid-cols-3 lg:h-[600px] transition-all duration-300 ease-in-out">
       {/* ================= LEFT PANEL: PREVIEW ================= */}
-      {/* ✅ FIX: เพิ่ม min-h-[300px] เพื่อให้ Mobile ไม่ยุบหายไป */}
       <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col min-h-[300px] lg:h-full overflow-hidden bg-card p-0 relative group">
         {/* Header Toolbar */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-border/40 bg-muted/30 min-h-[56px] absolute top-0 w-full z-10 backdrop-blur-sm">
@@ -116,15 +116,13 @@ export function ColorFormatConverter() {
               Preview
             </span>
           </div>
-          <Button
-            variant="ghost"
+
+          {/* ✅ ใช้ RegenerateButton แบบ Icon Only */}
+          <RegenerateButton
+            onRegenerate={handleRandomColor}
             size="icon"
-            onClick={handleRandomColor}
             className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
-            title="Randomize Color"
-          >
-            <RefreshCcw size={14} />
-          </Button>
+          />
         </div>
 
         <CardContent className="p-0 flex-1 relative flex flex-col pt-[56px]">
@@ -132,13 +130,7 @@ export function ColorFormatConverter() {
           <div
             className="flex-1 w-full relative transition-colors duration-200 ease-linear"
             style={{ backgroundColor: previewColor.toHex() }}
-            // ✅ ลบ onClick เดิมออก เพื่อป้องกัน Event ชนกันบน Mobile
           >
-            {/* Overlay Info */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              {/* เอา "Click to Pick" ออก เพราะเราย้ายปุ่มเลือกสีไปไว้ด้านขวาแล้ว */}
-            </div>
-
             {/* Color Info Overlay */}
             <div
               className={cn(
@@ -146,11 +138,7 @@ export function ColorFormatConverter() {
                 textColor
               )}
             >
-              <p
-                className={cn(
-                  "text-xs font-bold uppercase opacity-60 tracking-wider"
-                )}
-              >
+              <p className="text-xs font-bold uppercase opacity-60 tracking-wider">
                 Closest Name
               </p>
               <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight capitalize drop-shadow-sm">
@@ -158,22 +146,14 @@ export function ColorFormatConverter() {
               </h3>
 
               <div className="flex items-center gap-2 mt-2">
-                <span
-                  className={cn(
-                    "px-2 py-0.5 rounded text-[10px] font-bold border backdrop-blur-md bg-white/10",
-                    borderColor
-                  )}
-                >
-                  {previewColor.isLight() ? "Light" : "Dark"}
-                </span>
-                <span
-                  className={cn(
-                    "px-2 py-0.5 rounded text-[10px] font-bold border backdrop-blur-md bg-white/10",
-                    borderColor
-                  )}
-                >
-                  Lum: {previewColor.luminance().toFixed(2)}
-                </span>
+                <BadgeInfo
+                  text={previewColor.isLight() ? "Light" : "Dark"}
+                  borderColor={borderColor}
+                />
+                <BadgeInfo
+                  text={`Lum: ${previewColor.luminance().toFixed(2)}`}
+                  borderColor={borderColor}
+                />
               </div>
             </div>
           </div>
@@ -184,7 +164,7 @@ export function ColorFormatConverter() {
       <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm p-0">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[56px]">
           <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
-            <RefreshCcw size={16} />
+            <Logs size={16} />
           </div>
           <span className="text-sm font-semibold text-muted-foreground">
             Format Converters
@@ -192,7 +172,7 @@ export function ColorFormatConverter() {
         </div>
 
         <CardContent className="p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
-          {/* ✅ New Color Picker UI */}
+          {/* Color Picker UI */}
           <div className="space-y-2">
             <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
               Pick a Color
@@ -206,37 +186,36 @@ export function ColorFormatConverter() {
           <div className="h-px w-full bg-border/40" />
 
           {/* Input Groups */}
-          <ColorInputRow
-            label="HEX"
-            value={hex}
-            onChange={(val) => handleInputChange(val, "hex")}
-            placeholder="#000000"
-            copyValue={hex}
-          />
-
-          <ColorInputRow
-            label="RGB"
-            value={rgb}
-            onChange={(val) => handleInputChange(val, "rgb")}
-            placeholder="rgb(0, 0, 0)"
-            copyValue={rgb}
-          />
-
-          <ColorInputRow
-            label="HSL"
-            value={hsl}
-            onChange={(val) => handleInputChange(val, "hsl")}
-            placeholder="hsl(0, 0%, 0%)"
-            copyValue={hsl}
-          />
-
-          <ColorInputRow
-            label="CMYK"
-            value={cmyk}
-            onChange={(val) => handleInputChange(val, "cmyk")}
-            placeholder="device-cmyk(0, 0, 0, 1)"
-            copyValue={cmyk}
-          />
+          <div className="space-y-4">
+            <ColorInputRow
+              label="HEX"
+              value={hex}
+              onChange={(val) => handleInputChange(val, "hex")}
+              placeholder="#000000"
+              copyValue={hex}
+            />
+            <ColorInputRow
+              label="RGB"
+              value={rgb}
+              onChange={(val) => handleInputChange(val, "rgb")}
+              placeholder="rgb(0, 0, 0)"
+              copyValue={rgb}
+            />
+            <ColorInputRow
+              label="HSL"
+              value={hsl}
+              onChange={(val) => handleInputChange(val, "hsl")}
+              placeholder="hsl(0, 0%, 0%)"
+              copyValue={hsl}
+            />
+            <ColorInputRow
+              label="CMYK"
+              value={cmyk}
+              onChange={(val) => handleInputChange(val, "cmyk")}
+              placeholder="device-cmyk(0, 0, 0, 1)"
+              copyValue={cmyk}
+            />
+          </div>
 
           {/* CSS Example Section */}
           <div className="mt-auto pt-6 border-t border-border/40">
@@ -271,8 +250,27 @@ export function ColorFormatConverter() {
 }
 
 // =============================================================================
-// Helper Component (Sub-component)
+// Helper Components (Sub-components)
 // =============================================================================
+
+function BadgeInfo({
+  text,
+  borderColor,
+}: {
+  text: string;
+  borderColor: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "px-2 py-0.5 rounded text-[10px] font-bold border backdrop-blur-md bg-white/10",
+        borderColor
+      )}
+    >
+      {text}
+    </span>
+  );
+}
 
 interface ColorInputRowProps {
   label: string;

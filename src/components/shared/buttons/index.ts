@@ -4,3 +4,4 @@ export * from "./demo-button";
 export * from "./download-button";
 export * from "./paste-button";
 export * from "./swap-button";
+export * from "./regenerate-button";

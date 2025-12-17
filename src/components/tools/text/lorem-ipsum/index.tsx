@@ -16,12 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 // Icons
-import { RefreshCw, Type, Hash, Quote, Settings2 } from "lucide-react";
+import { Type, Hash, Quote, Settings2 } from "lucide-react";
 // Shared Components
-import { CopyButton, DownloadButton } from "@/components/shared/buttons";
+import {
+  CopyButton,
+  DownloadButton,
+  RegenerateButton,
+} from "@/components/shared/buttons";
 // Utils & Libs
 import { generateLorem, LoremType } from "@/lib/generators";
 import { cn } from "@/lib/utils";
@@ -161,14 +164,12 @@ export function LoremIpsumGenerator() {
 
           {/* Action Button */}
           <div className="mt-auto pt-4 border-t border-border/40">
-            <Button
+            <RegenerateButton
+              label="Regenerate Text"
+              onRegenerate={() => setSeed((s) => s + 1)}
+              variant="default" // ใช้สีทึบ
               className="w-full h-11 font-semibold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
-              onClick={() => setSeed((s) => s + 1)}
-              variant="default"
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Regenerate Text
-            </Button>
+            />
           </div>
         </CardContent>
       </Card>

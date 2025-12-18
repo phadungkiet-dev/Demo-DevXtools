@@ -7,16 +7,17 @@ export const developmentRegistry: Record<string, ComponentType> = {
       (mod) => mod.CronParser
     )
   ),
-    "regex-tester": dynamic(() =>
+  "regex-tester": dynamic(() =>
     import("@/components/tools/development/regex-tester").then(
       (mod) => mod.RegexTester
     )
   ),
+  "sql-formatter": dynamic(() =>
+    import("@/components/tools/development/sql-formatter").then(
+      (mod) => mod.SqlFormatter
+    )
+  ),
   // --------------------------------------------------------
-
-
-
-
 
   "uuid-generator": dynamic(() =>
     import("@/components/tools/development/uuid-generator").then(
@@ -35,11 +36,6 @@ export const developmentRegistry: Record<string, ComponentType> = {
     )
   ),
 
-  "sql-formatter": dynamic(() =>
-    import("@/components/tools/development/sql-formatter").then(
-      (mod) => mod.SqlFormatter
-    )
-  ),
   "json-to-ts": dynamic(() =>
     import("@/components/tools/development/json-to-ts").then(
       (mod) => mod.JsonToTsConverter

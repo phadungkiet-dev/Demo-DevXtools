@@ -28,6 +28,15 @@ export const developmentTools: ToolConfig[] = [
     icon: Regex,
     keywords: ["regex", "regexp", "test", "match", "pattern"],
   },
+  {
+    slug: "sql-formatter",
+    title: "SQL Formatter",
+    description: "Format and beautify SQL queries (Basic).",
+    category: "development",
+    icon: Database,
+    keywords: ["sql", "formatter", "database", "query", "beautify"],
+    isNew: true,
+  },
   // --------------------------------------------------
 
   {
@@ -55,15 +64,7 @@ export const developmentTools: ToolConfig[] = [
     icon: Clock,
     keywords: ["timestamp", "unix", "date", "converter"],
   },
-  {
-    slug: "sql-formatter",
-    title: "SQL Formatter",
-    description: "Format and beautify SQL queries (Basic).",
-    category: "development",
-    icon: Database,
-    keywords: ["sql", "formatter", "database", "query", "beautify"],
-    isNew: true,
-  },
+
   {
     slug: "json-to-ts",
     title: "JSON to TypeScript",

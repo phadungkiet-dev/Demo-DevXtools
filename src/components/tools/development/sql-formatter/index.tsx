@@ -1,152 +1,242 @@
 "use client";
 
 import { useState } from "react";
+
+// UI Components
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CopyButton } from "@/components/shared/buttons/copy-button";
-import { Trash2, Database, AlignLeft, Minimize } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Icons
+import {
+  Database,
+  AlignLeft,
+  Minimize2,
+  Code2,
+  FileCode,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+
+// Shared Components
+import {
+  CopyButton,
+  ClearButton,
+  PasteButton,
+  DownloadButton,
+} from "@/components/shared/buttons";
 import { toast } from "sonner";
 
-// --- Simple SQL Formatter Logic ---
-const formatSQL = (sql: string) => {
-  if (!sql.trim()) return "";
+// Libs
+import { format, type SqlLanguage } from "sql-formatter";
 
-  // 1. Normalize whitespace (remove extra spaces/tabs/newlines)
-  let formatted = sql.replace(/\s+/g, " ").trim();
+// =============================================================================
+// Constants
+// =============================================================================
+const DIALECTS: { value: SqlLanguage; label: string }[] = [
+  { value: "sql", label: "Standard SQL" },
+  { value: "mysql", label: "MySQL" },
+  { value: "postgresql", label: "PostgreSQL" },
+  { value: "transactsql", label: "SQL Server (T-SQL)" },
+  { value: "plsql", label: "Oracle (PL/SQL)" },
+  { value: "bigquery", label: "Google BigQuery" },
+];
 
-  // 2. List of Keywords to start a new line
-  const keywords = [
-    "SELECT",
-    "FROM",
-    "WHERE",
-    "AND",
-    "OR",
-    "ORDER BY",
-    "GROUP BY",
-    "HAVING",
-    "LIMIT",
-    "INSERT INTO",
-    "VALUES",
-    "UPDATE",
-    "SET",
-    "DELETE FROM",
-    "LEFT JOIN",
-    "RIGHT JOIN",
-    "INNER JOIN",
-    "OUTER JOIN",
-    "JOIN",
-    "UNION",
-    "UNION ALL",
-    "CASE",
-    "END",
-  ];
-
-  // 3. Regex replacement for keywords (Case insensitive)
-  // Add newline before keywords
-  keywords.forEach((kw) => {
-    const regex = new RegExp(`\\b${kw}\\b`, "yi"); // 'y' for sticky might not be best here, use 'gi'
-    // Safe replace: Ensure we don't break words inside strings (Basic heuristic)
-    // Using a simpler approach: Word boundary check
-    const simpleRegex = new RegExp(`\\b${kw}\\b`, "gi");
-    formatted = formatted.replace(
-      simpleRegex,
-      (match) => `\n${match.toUpperCase()}`
-    );
-  });
-
-  // 4. Handle parentheses (Basic indentation attempt)
-  formatted = formatted.replace(/\(/g, " (\n  ").replace(/\)/g, "\n)");
-
-  // 5. Fix multiple newlines
-  return formatted.replace(/\n\s*\n/g, "\n").trim();
-};
-
-const minifySQL = (sql: string) => {
-  return sql.replace(/\s+/g, " ").trim();
-};
-
+// =============================================================================
+// Main Component
+// =============================================================================
 export function SqlFormatter() {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState("SELECT * FROM users WHERE id = 1");
   const [output, setOutput] = useState("");
+  const [dialect, setDialect] = useState<SqlLanguage>("sql");
+  const [error, setError] = useState<string | null>(null);
 
+  // --- Handlers ---
   const handleFormat = () => {
+    if (!input.trim()) {
+      toast("SQL input is empty", {
+        icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+      });
+      return;
+    }
+
     try {
-      const formatted = formatSQL(input);
+      const formatted = format(input, {
+        language: dialect,
+        tabWidth: 2,
+        keywordCase: "upper",
+        linesBetweenQueries: 2,
+      });
       setOutput(formatted);
-      toast.success("SQL Formatted");
-    } catch (e) {
-      toast.error("Failed to format SQL");
+      setError(null);
+
+      toast("Formatted successfully", {
+        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+      });
+    } catch (err) {
+      const errMsg = (err as Error).message;
+      setError(errMsg);
+      toast("Formatting failed", {
+        icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+      });
     }
   };
 
   const handleMinify = () => {
-    const minified = minifySQL(input);
-    setOutput(minified);
-    toast.success("SQL Minified");
-  };
+    if (!input.trim()) {
+      toast("SQL input is empty", {
+        icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+      });
+      return;
+    }
 
-  const handleClear = () => {
-    setInput("");
-    setOutput("");
+    try {
+      const minified = input
+        .replace(/\s+/g, " ")
+        .replace(/\s*([,()])\s*/g, "$1")
+        .trim();
+
+      setOutput(minified);
+      setError(null);
+      toast("Minified successfully", {
+        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+      });
+    } catch (err) {
+      const errMsg = (err as Error).message;
+      setError(errMsg);
+      toast("Minify failed", {
+        icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+      });
+    }
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2 h-[calc(100vh-200px)] min-h-[500px]">
-      {/* Input Section */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center">
-          <Label>Raw SQL</Label>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="w-4 h-4 mr-2" /> Clear
-          </Button>
+    <div className="flex flex-col gap-4 h-[600px] animate-in fade-in duration-500">
+      {/* ================= TOP PANEL: INPUT ================= */}
+      <Card className="flex-1 flex flex-col min-h-0 overflow-hidden border-border/60 shadow-md p-0">
+        {/* Toolbar */}
+        <div className="flex flex-row items-center justify-between px-4 h-[60px] border-b border-border/40 bg-muted/30 shrink-0 gap-4">
+          {/* Label Group */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+              <Database size={16} />
+            </div>
+            {/* ✅ แก้ไขตรงนี้: เปลี่ยนจาก xs เป็น sm */}
+            {/* Mobile: ซ่อน Text (โชว์แค่ไอคอน) */}
+            {/* Desktop (sm ขึ้นไป): โชว์ Text "Input SQL" */}
+            <span className="text-sm font-semibold text-muted-foreground hidden sm:inline-block">
+              Input SQL
+            </span>
+          </div>
+
+          {/* Tools Group */}
+          {/* ใช้ overflow-x-auto เพื่อให้เครื่องมือไม่ล้นจอในมือถือจอเล็ก */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar mask-fade-right">
+            <Select
+              value={dialect}
+              onValueChange={(v) => setDialect(v as SqlLanguage)}
+            >
+              <SelectTrigger className="h-8 w-[130px] text-xs font-medium bg-background border-border/60">
+                <SelectValue placeholder="Select Dialect" />
+              </SelectTrigger>
+              <SelectContent>
+                {DIALECTS.map((d) => (
+                  <SelectItem key={d.value} value={d.value}>
+                    {d.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="w-px h-4 bg-border mx-1 shrink-0" />
+            <PasteButton onPaste={setInput} className="flex" />
+            <ClearButton onClear={() => setInput("")} disabled={!input} />
+          </div>
         </div>
-        <Card className="flex-1 overflow-hidden">
-          <CardContent className="p-0 h-full">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="SELECT * FROM users WHERE id = 1..."
-              className="w-full h-full resize-none border-0 focus-visible:ring-0 p-4 font-mono text-sm leading-relaxed"
-              spellCheck={false}
-            />
-          </CardContent>
-        </Card>
+
+        {/* Input Area */}
+        <div className="flex-1 relative min-h-0">
+          <Textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="w-full h-full resize-none border-0 focus-visible:ring-0 p-4 font-mono text-sm leading-relaxed bg-transparent rounded-none shadow-none scrollbar-thin placeholder:text-muted-foreground/30"
+            placeholder="SELECT * FROM table..."
+            spellCheck={false}
+          />
+        </div>
+      </Card>
+
+      {/* ================= MIDDLE ACTIONS ================= */}
+      <div className="flex justify-center gap-3 shrink-0 py-1">
+        <Button onClick={handleFormat} className="min-w-[120px] shadow-sm">
+          <AlignLeft className="mr-2 h-4 w-4" />
+          Format
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleMinify}
+          className="min-w-[120px] shadow-sm bg-background"
+        >
+          <Minimize2 className="mr-2 h-4 w-4" />
+          Minify
+        </Button>
       </div>
 
-      {/* Output Section */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center">
-          <Label>Result</Label>
-          <div className="flex gap-2">
-            <Button size="sm" variant="secondary" onClick={handleMinify}>
-              <Minimize className="w-4 h-4 mr-2" /> Minify
-            </Button>
-            <Button size="sm" onClick={handleFormat}>
-              <AlignLeft className="w-4 h-4 mr-2" /> Format
-            </Button>
+      {/* ================= BOTTOM PANEL: OUTPUT ================= */}
+      <Card className="flex-1 flex flex-col min-h-0 overflow-hidden border-border/60 shadow-md p-0 bg-muted/10">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between px-4 h-[60px] border-b border-border/40 bg-muted/30 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-purple-500/10 rounded-md text-purple-500">
+              <Code2 size={16} />
+            </div>
+            <span className="text-sm font-semibold text-muted-foreground">
+              Output
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <DownloadButton
+              text={output}
+              filename="query.sql"
+              extension="sql"
+              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+            />
+            <CopyButton
+              text={output}
+              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+            />
           </div>
         </div>
-        <Card className="flex-1 overflow-hidden bg-muted/30 relative">
-          <div className="absolute top-2 right-2 z-10">
-            <CopyButton text={output} />
-          </div>
-          <CardContent className="p-0 h-full">
+
+        {/* Output Area */}
+        <div className="flex-1 relative min-h-0">
+          {output ? (
             <Textarea
               value={output}
               readOnly
-              placeholder="Formatted result will appear here..."
-              className="w-full h-full resize-none border-0 bg-transparent focus-visible:ring-0 p-4 font-mono text-sm leading-relaxed text-primary"
+              className="w-full h-full resize-none border-0 focus-visible:ring-0 p-4 font-mono text-sm leading-relaxed bg-transparent rounded-none shadow-none scrollbar-thin text-foreground"
             />
-          </CardContent>
-        </Card>
-      </div>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-3 select-none">
+              <FileCode size={48} strokeWidth={1} />
+              <p>Formatted SQL will appear here</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="absolute bottom-4 left-4 right-4 bg-destructive/10 text-destructive text-xs p-3 rounded-md border border-destructive/20 backdrop-blur-sm animate-in slide-in-from-bottom-2 flex items-center gap-2">
+              <AlertCircle size={14} />
+              <span className="font-bold">Error:</span> {error}
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

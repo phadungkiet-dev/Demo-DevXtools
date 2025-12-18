@@ -17,13 +17,13 @@ export const developmentRegistry: Record<string, ComponentType> = {
       (mod) => mod.SqlFormatter
     )
   ),
-  // --------------------------------------------------------
-
   "uuid-generator": dynamic(() =>
     import("@/components/tools/development/uuid-generator").then(
       (mod) => mod.UuidGenerator
     )
   ),
+  // --------------------------------------------------------
+
   "timestamp-converter": dynamic(() =>
     import("@/components/tools/development/timestamp-converter").then(
       (mod) => mod.TimestampConverter

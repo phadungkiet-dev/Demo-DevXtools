@@ -37,8 +37,6 @@ export const developmentTools: ToolConfig[] = [
     keywords: ["sql", "formatter", "database", "query", "beautify"],
     isNew: true,
   },
-  // --------------------------------------------------
-
   {
     slug: "uuid-generator",
     title: "UUID Generator",
@@ -47,6 +45,7 @@ export const developmentTools: ToolConfig[] = [
     icon: Fingerprint,
     keywords: ["uuid", "generator", "guid", "v4"],
   },
+  // --------------------------------------------------
 
   {
     slug: "keycode-info",

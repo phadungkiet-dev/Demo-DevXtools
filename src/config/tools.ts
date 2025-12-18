@@ -83,7 +83,7 @@ const rawCategories: CategoryConfig[] = [
     label: "Dev & JSON",
     icon: Braces,
     description: "Essential helpers for debugging and code formatting.",
-    hidden: true,
+    hidden: false,
   },
   {
     id: "css",

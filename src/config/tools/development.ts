@@ -11,12 +11,13 @@ import {
 
 export const developmentTools: ToolConfig[] = [
   {
-    slug: "uuid-generator",
-    title: "UUID Generator",
-    description: "Generate random UUIDs v4.",
+    slug: "cron-parser",
+    title: "Cron Parser",
+    description:
+      "Parse cron expressions into human-readable text and schedule.",
     category: "development",
-    icon: Fingerprint,
-    keywords: ["uuid", "generator", "guid", "v4"],
+    icon: Timer,
+    keywords: ["cron", "schedule", "parser", "time", "interval"],
   },
   {
     slug: "regex-tester",
@@ -27,15 +28,17 @@ export const developmentTools: ToolConfig[] = [
     icon: Regex,
     keywords: ["regex", "regexp", "test", "match", "pattern"],
   },
+  // --------------------------------------------------
+
   {
-    slug: "cron-parser",
-    title: "Cron Parser",
-    description:
-      "Parse cron expressions into human-readable text and schedule.",
+    slug: "uuid-generator",
+    title: "UUID Generator",
+    description: "Generate random UUIDs v4.",
     category: "development",
-    icon: Timer,
-    keywords: ["cron", "schedule", "parser", "time", "interval"],
+    icon: Fingerprint,
+    keywords: ["uuid", "generator", "guid", "v4"],
   },
+
   {
     slug: "keycode-info",
     title: "Keycode Info",

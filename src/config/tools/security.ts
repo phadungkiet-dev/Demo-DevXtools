@@ -1,15 +1,7 @@
 import { ToolConfig } from "@/config/tools";
-import { ShieldCheck, Hash, KeyRound } from "lucide-react";
+import { Hash, KeyRound } from "lucide-react";
 
 export const securityTools: ToolConfig[] = [
-  {
-    slug: "jwt-decoder",
-    title: "JWT Decoder",
-    description: "Decode JSON Web Tokens to view header and payload data.",
-    category: "security",
-    icon: ShieldCheck,
-    keywords: ["jwt", "token", "auth", "decode", "base64"],
-  },
   {
     slug: "hash-generator",
     title: "Hash Generator",

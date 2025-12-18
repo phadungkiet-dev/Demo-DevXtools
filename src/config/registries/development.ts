@@ -22,6 +22,11 @@ export const developmentRegistry: Record<string, ComponentType> = {
       (mod) => mod.UuidGenerator
     )
   ),
+  "jwt-decoder": dynamic(() =>
+    import("@/components/tools/development/jwt-decoder").then(
+      (mod) => mod.JwtDecoder
+    )
+  ),
   // --------------------------------------------------------
 
   "timestamp-converter": dynamic(() =>

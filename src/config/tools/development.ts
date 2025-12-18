@@ -7,6 +7,7 @@ import {
   Clock,
   Database,
   Code2,
+  ShieldCheck,
 } from "lucide-react";
 
 export const developmentTools: ToolConfig[] = [
@@ -44,6 +45,14 @@ export const developmentTools: ToolConfig[] = [
     category: "development",
     icon: Fingerprint,
     keywords: ["uuid", "generator", "guid", "v4"],
+  },
+  {
+    slug: "jwt-decoder",
+    title: "JWT Decoder",
+    description: "Decode JSON Web Tokens to view header and payload data.",
+    category: "development",
+    icon: ShieldCheck,
+    keywords: ["jwt", "token", "auth", "decode", "base64"],
   },
   // --------------------------------------------------
 

@@ -10,6 +10,7 @@ import {
   Rocket, // Web/SEO (Performance)
   Network, // Network
   LucideIcon,
+  Terminal,
 } from "lucide-react";
 
 // Import รวม Tools ทั้งหมด (ต้องมั่นใจว่าไฟล์ tools/index.ts มีอยู่จริงและ export ถูกต้อง)
@@ -80,9 +81,10 @@ const rawCategories: CategoryConfig[] = [
   },
   {
     id: "development",
-    label: "Dev & JSON",
-    icon: Braces,
-    description: "Essential helpers for debugging and code formatting.",
+    label: "Development",
+    icon: Terminal,
+    description:
+      "Generators, parsers, and formatters for everyday coding tasks.",
     hidden: false,
   },
   {

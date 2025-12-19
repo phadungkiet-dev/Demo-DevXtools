@@ -2,8 +2,8 @@ import dynamic from "next/dynamic";
 import { ComponentType } from "react";
 
 export const securityRegistry: Record<string, ComponentType> = {
-  "hash-generator": dynamic(() =>
-    import("@/components/tools/security/hash-generator").then(
+  "hash-generator-security": dynamic(() =>
+    import("@/components/tools/security/hash-generator-security").then(
       (mod) => mod.HashGenerator
     )
   ),

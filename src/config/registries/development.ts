@@ -27,6 +27,11 @@ export const developmentRegistry: Record<string, ComponentType> = {
       (mod) => mod.JwtDecoder
     )
   ),
+  "hash-generator": dynamic(() =>
+    import("@/components/tools/development/hash-generator").then(
+      (mod) => mod.HashGenerator
+    )
+  ),
   // --------------------------------------------------------
 
   "timestamp-converter": dynamic(() =>

@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+# กำหนดให้รันเมื่อมีการ Push หรือ Pull Request เข้ามาที่ branch main และ develop
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+
+jobs:
+  quality-check:
+    name: 🛡️ Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. ดึง Code ล่าสุดมา
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      # 2. ติดตั้ง Node.js (ใช้ version 20 ตามมาตรฐานปัจจุบัน)
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. ลง Library ต่างๆ (เหมือน npm install)
+      - name: Install Dependencies
+        run: npm ci
+
+      # 4. ตรวจสอบ Type (TypeScript)
+      - name: 🔍 TypeScript Check
+        run: npx tsc --noEmit
+
+      # 5. ตรวจสอบ Code Style (Lint)
+      - name: 🧹 Lint Check
+        run: npm run lint
+
+      # 6. ลอง Build จริง (เพื่อดูว่าพังไหม)
+      - name: 🏗️ Build Test
+        run: npm run build

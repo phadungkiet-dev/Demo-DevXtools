@@ -11,7 +11,7 @@ jobs:
   quality-check:
     name: 🛡️ Quality Check
     runs-on: ubuntu-latest
-    
+
     steps:
       # 1. ดึง Code ล่าสุดมา
       - name: Checkout Repo
@@ -21,21 +21,32 @@ jobs:
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
-      # 3. ลง Library ต่างๆ (เหมือน npm install)
+      # 3. Cache Next.js (เพิ่มใหม่: ช่วยให้ Build เร็วขึ้นมาก)
+      - name: Next.js Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+          # สร้าง Key จาก OS และไฟล์ package-lock ถ้า Dependencies ไม่เปลี่ยน ก็จะใช้ Cache เดิม
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+
+      # 4. ลง Library ต่างๆ (เหมือน npm install)
       - name: Install Dependencies
         run: npm ci
 
-      # 4. ตรวจสอบ Type (TypeScript)
+      # 5. ตรวจสอบ Type (TypeScript)
       - name: 🔍 TypeScript Check
-        run: npx tsc --noEmit
+        run: npm run type-check
 
-      # 5. ตรวจสอบ Code Style (Lint)
+      # 6. ตรวจสอบ Code Style (Lint)
       - name: 🧹 Lint Check
         run: npm run lint
 
-      # 6. ลอง Build จริง (เพื่อดูว่าพังไหม)
+      # 7. ลอง Build จริง (เพื่อดูว่าพังไหม)
       - name: 🏗️ Build Test
         run: npm run build

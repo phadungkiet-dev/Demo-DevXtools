@@ -9,7 +9,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   return (
-    // 1. Parent Flex Container
+    // Parent Flex Container
     <div className="relative flex min-h-screen bg-background font-sans antialiased overflow-hidden">
       {/* Sidebar (Fixed Left) */}
       <Sidebar />

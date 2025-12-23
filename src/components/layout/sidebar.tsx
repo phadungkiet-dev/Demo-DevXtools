@@ -6,11 +6,16 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 // Config & Store
 import { toolCategories, allTools, ToolConfig } from "@/config/tools";
 import { useSidebarStore } from "@/store/use-sidebar-store";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentTools } from "@/hooks/useRecentTools";
+
+// Utils
+import { cn } from "@/lib/utils";
+
 // UI Components
 import {
   Tooltip,
@@ -20,16 +25,16 @@ import {
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-// Icons
+
+// Icons & Logo
 import {
-  Box,
   Star,
   Clock,
   PanelLeftClose,
   PanelRightClose,
   ChevronDown,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Logo } from "@/components/layout/logo";
 
 // =============================================================================
 // Main Component
@@ -38,30 +43,40 @@ type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function Sidebar({ className, ...props }: SidebarProps) {
   const pathname = usePathname();
+  // Global State จาก Zustand
   const { isOpen, toggle } = useSidebarStore();
   const { favorites } = useFavorites();
   const { recents } = useRecentTools();
 
+  // Local State
   const [isMounted, setIsMounted] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<
     Record<string, boolean>
   >({});
 
+  // ---------------------------------------------------------------------------
+  // Effects
+  // ---------------------------------------------------------------------------
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
 
+  // Auto Expand: เมื่อเข้าสู่หน้านั้นๆ ให้เปิด Category ของหน้านั้นอัตโนมัติ
   useEffect(() => {
     if (!isOpen) return;
+
     const activeTool = allTools.find(
       (t) => pathname === `/tools/${t.category}/${t.slug}`
     );
 
     if (activeTool) {
+      // ใช้ setTimeout เพื่อให้ State update ไม่ชนกับ render cycle ปัจจุบัน
       const timer = setTimeout(() => {
         setCollapsedCategories((prev) => {
+          // ถ้าเปิดอยู่แล้วไม่ต้องทำอะไร
           if (prev[activeTool.category] === false) return prev;
+          // สั่งเปิด (false = ไม่ collapse)
           return { ...prev, [activeTool.category]: false };
         });
       }, 0);
@@ -69,15 +84,20 @@ export function Sidebar({ className, ...props }: SidebarProps) {
     }
   }, [pathname, isOpen]);
 
+  // ---------------------------------------------------------------------------
+  // Logic / Memoization
+  // ---------------------------------------------------------------------------
   const toggleCategory = (id: string) => {
     setCollapsedCategories((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // กรองรายการโปรด
   const favoriteToolsList = useMemo(() => {
     if (!isMounted) return [];
     return allTools.filter((t) => favorites.includes(t.slug));
   }, [isMounted, favorites]);
 
+  // กรองรายการล่าสุด (Limit 5)
   const recentToolsList = useMemo(() => {
     if (!isMounted) return [];
     return recents
@@ -85,31 +105,43 @@ export function Sidebar({ className, ...props }: SidebarProps) {
       .filter((t): t is ToolConfig => t !== undefined)
       .slice(0, 5); // ✅ LIMIT 5: ตัดเหลือแค่ 5 รายการสำหรับ Desktop
   }, [isMounted, recents]);
-  
+
+  // จัดกลุ่มเครื่องมือตามหมวดหมู่ (Clean Code using Reduce)
   const groupedTools = useMemo(() => {
-    const groups: Record<string, ToolConfig[]> = {};
-    toolCategories.forEach((cat) => {
+    return toolCategories.reduce((acc, cat) => {
       const toolsInCat = allTools.filter((t) => t.category === cat.id);
-      if (toolsInCat.length > 0) groups[cat.id] = toolsInCat;
-    });
-    return groups;
+      if (toolsInCat.length > 0) {
+        acc[cat.id] = toolsInCat;
+      }
+      return acc;
+    }, {} as Record<string, ToolConfig[]>);
   }, []);
 
+  // ถ้ายังไม่ Mount ให้ return null ไปก่อนเพื่อกัน Layout Shift ที่ไม่สวยงาม หรือ Hydration Error
   if (!isMounted) return null;
 
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-50 h-screen border-r border-border/40 bg-background/80 backdrop-blur-xl",
+        // Layout Positioning
+        "fixed left-0 top-0 z-50 h-screen",
+        // Visual Style (Glassmorphism + Border)
+        "border-r border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60",
+        // Flex Layout
+        // "flex flex-col transition-[width] duration-300 ease-in-out will-change-[width]",
         "flex flex-col transition-[width] duration-300 ease-in-out will-change-[width]",
+        // Visibility (Desktop Only - Mobile ใช้ MobileNav แยกต่างหาก)
         "hidden md:flex",
+        // Width Control
         isOpen ? "w-72" : "w-[72px]",
         className
       )}
       {...props}
     >
-      {/* 1. Header (Fixed Height) */}
-      <div className="flex h-16 items-center justify-start px-4 shrink-0 overflow-hidden border-b border-border/20">
+      {/* --------------------------------------------------------------------------- */}
+      {/* Header (Logo Area) */}
+      {/* --------------------------------------------------------------------------- */}
+      <div className="flex h-16 items-center justify-start px-4 shrink-0 overflow-hidden border-b border-border/40">
         <Link
           href="/"
           className={cn(
@@ -117,9 +149,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
             !isOpen && "justify-center"
           )}
         >
-          <div className="flex h-9 w-9 min-w-[36px] items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-            <Box size={20} strokeWidth={2.5} />
-          </div>
+          <Logo size={36} className="shrink-0" />
           <div
             className={cn(
               "flex flex-col transition-opacity duration-300 min-w-0 overflow-hidden",
@@ -136,17 +166,18 @@ export function Sidebar({ className, ...props }: SidebarProps) {
         </Link>
       </div>
 
-      {/* 2. Scrollable Content (Wrapper Fix) */}
-      {/* ✅ แก้ไข: ใช้ div หุ้มด้วย flex-1 min-h-0 เพื่อบังคับ Scrollbar */}
-      <div className="flex-1 min-h-0 w-full">
+      {/* --------------------------------------------------------------------------- */}
+      {/* 2. Scrollable Content Area */}
+      {/* --------------------------------------------------------------------------- */}
+      <div className="flex-1 min-h-0 w-full group/scroll">
         <ScrollArea className="h-full w-full px-3 py-4">
           <div className="space-y-6 pb-4">
-            {/* Favorites */}
+            {/* --- Favorites Section --- */}
             {favoriteToolsList.length > 0 && (
               <div
                 className={cn(
                   "space-y-1",
-                  !isOpen && "pb-2 mb-2 border-b border-dashed border-border/50"
+                  !isOpen && "pb-2 mb-2 border-b border-dashed border-border/60"
                 )}
               >
                 {isOpen && (
@@ -164,13 +195,15 @@ export function Sidebar({ className, ...props }: SidebarProps) {
                       isOpen={isOpen}
                       pathname={pathname}
                       isIndent={false}
+                      // เพิ่ม Hover สีเหลืองอ่อน
+                      className="hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-600 dark:hover:text-yellow-400"
                     />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Recents */}
+            {/* --- Recents Section --- */}
             {recentToolsList.length > 0 && (
               <div
                 className={cn(
@@ -193,13 +226,15 @@ export function Sidebar({ className, ...props }: SidebarProps) {
                       isOpen={isOpen}
                       pathname={pathname}
                       isIndent={false}
+                      // เพิ่ม Hover สีฟ้าอ่อน
+                      className="hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-600 dark:hover:text-sky-400"
                     />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Categories */}
+            {/* --- Categories Main Loop --- */}
             <div className="w-full">
               {toolCategories.map((category) => {
                 const tools = groupedTools[category.id];
@@ -208,15 +243,16 @@ export function Sidebar({ className, ...props }: SidebarProps) {
 
                 return (
                   <div key={category.id} className="mb-3 w-full">
+                    {/* Category Header (Clickable) */}
                     {isOpen ? (
                       <button
                         type="button"
+                        onClick={() => toggleCategory(category.id)}
                         className={cn(
                           "grid grid-cols-[1fr_auto] items-center gap-2 w-full h-8 px-3 rounded-md transition-colors",
                           "hover:bg-muted/50 text-muted-foreground hover:text-foreground",
                           "group mb-0.5 outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         )}
-                        onClick={() => toggleCategory(category.id)}
                       >
                         <span className="text-xs font-bold uppercase tracking-widest truncate text-left">
                           {category.label}
@@ -229,9 +265,11 @@ export function Sidebar({ className, ...props }: SidebarProps) {
                         />
                       </button>
                     ) : (
+                      // Divider for Collapsed Mode
                       <div className="my-2 h-px bg-border/40 w-8 mx-auto" />
                     )}
 
+                    {/* Tools List (Collapsible) */}
                     <div
                       className={cn(
                         "grid transition-all duration-300 ease-in-out overflow-hidden w-full",
@@ -262,22 +300,26 @@ export function Sidebar({ className, ...props }: SidebarProps) {
         </ScrollArea>
       </div>
 
-      {/* 3. Footer (Fixed Height) */}
-      <div className="p-3 border-t border-border/40 bg-muted/10 shrink-0">
+      {/* --------------------------------------------------------------------------- */}
+      {/* 3. Footer (Toggle Button) */}
+      {/* --------------------------------------------------------------------------- */}
+      <div className="flex shrink-0 items-center justify-center border-t border-border/40 bg-muted/10 p-3 backdrop-blur-sm">
         <Button
           variant="ghost"
-          size={isOpen ? "sm" : "icon"}
           onClick={toggle}
           className={cn(
-            "w-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all",
-            !isOpen && "h-9 w-9 mx-auto"
+            // Base styles
+            "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all duration-300",
+            // Force content centering
+            "flex items-center justify-center",
+            isOpen ? "h-10 w-full px-3" : "h-9 w-9 px-0"
           )}
           title={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
         >
           {isOpen ? (
             <div className="flex items-center gap-2 animate-in fade-in zoom-in duration-300">
-              <PanelLeftClose size={16} />
-              <span className="text-xs font-medium">Collapse</span>
+              <PanelLeftClose size={18} />
+              <span className="text-sm font-medium">Collapse</span>
             </div>
           ) : (
             <PanelRightClose size={18} />
@@ -289,19 +331,26 @@ export function Sidebar({ className, ...props }: SidebarProps) {
 }
 
 // =============================================================================
-// Helper Components
+// Helper Components (Sub-Components)
 // =============================================================================
-
 interface SidebarItemProps {
   tool: ToolConfig;
   isOpen: boolean;
   pathname: string;
   isIndent: boolean;
+  className?: string;
 }
 
-function SidebarItem({ tool, isOpen, pathname, isIndent }: SidebarItemProps) {
+function SidebarItem({
+  tool,
+  isOpen,
+  pathname,
+  isIndent,
+  className,
+}: SidebarItemProps) {
   const isActive = pathname === `/tools/${tool.category}/${tool.slug}`;
 
+  // กรณี Sidebar พับอยู่ (แสดงแค่ Icon + Tooltip)
   if (!isOpen) {
     return (
       <TooltipProvider delayDuration={0}>
@@ -312,8 +361,11 @@ function SidebarItem({ tool, isOpen, pathname, isIndent }: SidebarItemProps) {
               className={cn(
                 "flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all duration-200 mb-1",
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                  : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
+                  : cn(
+                      "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                      className
+                    )
               )}
             >
               <tool.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
@@ -331,6 +383,7 @@ function SidebarItem({ tool, isOpen, pathname, isIndent }: SidebarItemProps) {
     );
   }
 
+  // กรณี Sidebar เปิดอยู่ (แสดงเต็ม)
   return (
     <Link
       href={`/tools/${tool.category}/${tool.slug}`}
@@ -342,8 +395,11 @@ function SidebarItem({ tool, isOpen, pathname, isIndent }: SidebarItemProps) {
           "grid grid-cols-[auto_1fr_auto] items-center gap-3 h-9 rounded-md text-sm transition-all duration-200 select-none w-full",
           isIndent ? "pl-3 pr-2" : "px-2",
           isActive
-            ? "bg-primary/10 text-primary font-medium"
-            : "text-muted-foreground/80 hover:bg-muted/50 hover:text-foreground"
+            ? "bg-primary/10 text-primary font-medium shadow-sm"
+            : cn(
+                "text-muted-foreground/80 hover:bg-muted/50 hover:text-foreground",
+                className
+              )
         )}
       >
         <tool.icon
@@ -352,12 +408,13 @@ function SidebarItem({ tool, isOpen, pathname, isIndent }: SidebarItemProps) {
             "shrink-0 transition-colors",
             isActive
               ? "text-primary"
-              : "text-muted-foreground/60 group-hover:text-foreground"
+              : "text-muted-foreground/60 group-hover:text-current"
           )}
           strokeWidth={isActive ? 2.5 : 2}
         />
         <span className="truncate min-w-0 text-left">{tool.title}</span>
 
+        {/* Badge "New" */}
         {tool.isNew && (
           <span className="shrink-0 text-[9px] uppercase font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-900/50">
             New
@@ -365,6 +422,7 @@ function SidebarItem({ tool, isOpen, pathname, isIndent }: SidebarItemProps) {
         )}
       </div>
 
+      {/* Active Indicator Bar */}
       {isActive && (
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
       )}
@@ -372,6 +430,7 @@ function SidebarItem({ tool, isOpen, pathname, isIndent }: SidebarItemProps) {
   );
 }
 
+// Header สำหรับ Section ย่อย (Favorites, Recent)
 function SectionHeader({
   icon: Icon,
   label,

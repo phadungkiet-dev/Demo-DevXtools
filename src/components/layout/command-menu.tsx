@@ -3,9 +3,10 @@
 // =============================================================================
 // Imports
 // =============================================================================
-import * as React from "react";
+import { useState, useEffect, useCallback, type ElementType } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+
 // UI Components
 import {
   CommandDialog,
@@ -17,62 +18,68 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
+
 // Config & Utils
-import { allTools } from "@/config/tools";
+import { allTools, toolCategories } from "@/config/tools";
 import { cn } from "@/lib/utils";
+
 // Icons
-import {
-  Laptop,
-  Moon,
-  Sun,
-  Search,
-  Command, // For Mac Icon
-  ArrowRight,
-} from "lucide-react";
+import { Laptop, Moon, Sun, Search, ArrowRight } from "lucide-react";
 
 // =============================================================================
-// Component
+// Main Component
 // =============================================================================
 export function CommandMenu() {
   const router = useRouter();
   const { setTheme } = useTheme();
 
-  // State
-  const [open, setOpen] = React.useState(false);
-  const [isMac, setIsMac] = React.useState(false);
-  const [mounted, setMounted] = React.useState(false);
+  // --- State Management ---
+  const [open, setOpen] = useState(false); // ควบคุมการเปิด/ปิด Dialog
+  const [isMac, setIsMac] = useState(false); // เช็ค OS เพื่อแสดงปุ่ม Cmd หรือ Ctrl
+  const [isMounted, setIsMounted] = useState(false); // ป้องกัน Hydration Error
 
-  // 🔄 Effect: Initialize & Keyboard Listeners
-  React.useEffect(() => {
-    // 1. Set Mounted & Check OS
-    setMounted(true);
-    if (typeof navigator !== "undefined") {
-      setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
-    }
+  // --- Effects ---
 
-    // 2. Keyboard Event Handler
-    const down = (e: KeyboardEvent) => {
+  // Initialization & Keyboard Listener
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+      // Check OS (Browser only)
+      if (typeof navigator !== "undefined") {
+        setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
+      }
+    }, 0);
+
+    // Keyboard Shortcut Handler (Ctrl+K / Cmd+K)
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((open) => !open);
+        setOpen((prev) => !prev);
       }
     };
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    document.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
-  /**
-   * 🏃 Helper: Run Command & Close Dialog
-   */
-  const runCommand = React.useCallback((command: () => void) => {
+  // --- Helper Functions ---
+  const runCommand = useCallback((command: () => void) => {
     setOpen(false);
     command();
   }, []);
 
-  // Prevent Hydration Mismatch (Don't render anything until mounted)
-  if (!mounted) {
-    // Return placeholder button to prevent layout shift
+  // Helper: หาชื่อหมวดหมู่จาก Category ID
+  const getCategoryLabel = (categoryId: string) => {
+    return toolCategories.find((c) => c.id === categoryId)?.label || categoryId;
+  };
+
+  // Hydration Guard: ไม่เรนเดอร์จนกว่าจะ Mount เพื่อป้องกัน Layout Shift
+  if (!isMounted) {
     return (
       <Button
         variant="outline"
@@ -86,12 +93,14 @@ export function CommandMenu() {
 
   return (
     <>
-      {/* --- Trigger Button --- */}
+      {/* --- Trigger Button --- 
+        ปุ่มที่แสดงบน Header ให้ user กดได้ (นอกเหนือจากกด Shortcut)
+      */}
       <Button
         variant="outline"
         className={cn(
           "relative h-9 w-full justify-start rounded-xl bg-muted/40 text-sm font-normal text-muted-foreground shadow-sm transition-all hover:bg-muted/60 hover:text-foreground border-border/40",
-          "px-3 md:w-64 lg:w-72 xl:w-96" // Responsive widths
+          "px-3 md:w-64 lg:w-72 xl:w-96" // Responsive widths: ยืดตามขนาดจอ
         )}
         onClick={() => setOpen(true)}
       >
@@ -99,27 +108,30 @@ export function CommandMenu() {
 
         <span className="inline-flex truncate">Search tools...</span>
 
-        {/* Keyboard Shortcut Badge */}
+        {/* Keyboard Shortcut Badge (Visual Hint) */}
         <kbd className="pointer-events-none absolute right-2 top-2 hidden h-5 select-none items-center gap-1 rounded bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 sm:flex border border-border/50 shadow-sm">
           {isMac ? (
             <>
-              <span className="text-xs">⌘</span>K
+              <span className="text-xs">⌘&nbsp;K</span>
             </>
           ) : (
             <>
-              <span className="text-xs">Ctrl</span>K
+              <span className="text-xs">Ctrl&nbsp;K</span>
             </>
           )}
         </kbd>
       </Button>
 
-      {/* --- Command Dialog --- */}
+      {/* --- Command Dialog (Modal) --- 
+        ส่วนที่เด้งขึ้นมาเมื่อกดปุ่ม หรือ Shortcut
+      */}
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Type a command or search tools..." />
+
         <CommandList className="py-2 max-h-[400px]">
           <CommandEmpty>No results found.</CommandEmpty>
 
-          {/* Group 1: Tools */}
+          {/* Group 1: Tools List (รายการเครื่องมือทั้งหมด) */}
           <CommandGroup
             heading="Tools"
             className="text-muted-foreground/70 px-2"
@@ -133,29 +145,43 @@ export function CommandMenu() {
                     router.push(`/tools/${tool.category}/${tool.slug}`)
                   );
                 }}
-                className="group flex items-center gap-2 rounded-lg px-2 py-2 aria-selected:bg-primary/10 aria-selected:text-primary cursor-pointer my-1"
+                className="group flex items-center gap-3 rounded-lg px-2 py-2 aria-selected:bg-primary/10 aria-selected:text-primary cursor-pointer my-1"
               >
-                <div className="flex items-center justify-center w-6 h-6 rounded bg-muted/50 group-aria-selected:bg-primary/20 transition-colors">
-                  <tool.icon className="h-4 w-4 shrink-0" />
+                {/* Icon Box */}
+                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted/50 group-aria-selected:bg-primary/20 transition-colors shrink-0">
+                  <tool.icon className="h-4 w-4" />
                 </div>
-                <span className="truncate flex-1">{tool.title}</span>
 
-                {/* Visual indicator on hover/select */}
-                <ArrowRight className="h-4 w-4 opacity-0 group-aria-selected:opacity-100 transition-opacity ml-2 text-primary/50" />
+                {/* Text Content */}
+                <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-medium text-sm">
+                      {tool.title}
+                    </span>
 
-                {/* New Badge */}
-                {tool.isNew && (
-                  <span className="ml-2 text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold border border-emerald-500/20">
-                    NEW
+                    {/* New Badge */}
+                    {tool.isNew && (
+                      <span className="shrink-0 text-[9px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0 rounded-full font-bold border border-emerald-500/20 leading-tight">
+                        NEW
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Category Label */}
+                  <span className="text-[10px] text-muted-foreground/80 truncate">
+                    {getCategoryLabel(tool.category)}
                   </span>
-                )}
+                </div>
+
+                {/* Arrow Indicator */}
+                <ArrowRight className="h-4 w-4 opacity-0 group-aria-selected:opacity-100 transition-opacity text-primary/50 shrink-0" />
               </CommandItem>
             ))}
           </CommandGroup>
 
           <CommandSeparator className="my-2" />
 
-          {/* Group 2: Theme */}
+          {/* Group 2: Theme Settings */}
           <CommandGroup
             heading="Theme"
             className="text-muted-foreground/70 px-2"
@@ -186,10 +212,10 @@ export function CommandMenu() {
 }
 
 // =============================================================================
-// Helper Component: Theme Item (To reduce duplication)
+// Helper Component: Theme Item
 // =============================================================================
 interface ThemeItemProps {
-  icon: React.ElementType;
+  icon: ElementType;
   label: string;
   onClick: () => void;
   runCommand: (cb: () => void) => void;
@@ -199,12 +225,12 @@ function ThemeItem({ icon: Icon, label, onClick, runCommand }: ThemeItemProps) {
   return (
     <CommandItem
       onSelect={() => runCommand(onClick)}
-      className="group flex items-center gap-2 rounded-lg px-2 py-2 aria-selected:bg-primary/10 aria-selected:text-primary cursor-pointer my-1"
+      className="group flex items-center gap-3 rounded-lg px-2 py-2 aria-selected:bg-primary/10 aria-selected:text-primary cursor-pointer my-1"
     >
-      <div className="flex items-center justify-center w-6 h-6 rounded bg-muted/50 group-aria-selected:bg-primary/20 transition-colors">
-        <Icon className="h-4 w-4 shrink-0" />
+      <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted/50 group-aria-selected:bg-primary/20 transition-colors shrink-0">
+        <Icon className="h-4 w-4" />
       </div>
-      <span>{label}</span>
+      <span className="font-medium text-sm">{label}</span>
     </CommandItem>
   );
 }

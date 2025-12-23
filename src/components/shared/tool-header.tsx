@@ -3,35 +3,36 @@
 // =============================================================================
 import Link from "next/link";
 import { ArrowLeft, LucideIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/tools/favorite-button";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
-// Interfaces
+// Type Definitions
 // =============================================================================
 interface ToolHeaderProps {
-  /** ชื่อเครื่องมือ (Title) */
+  /** ชื่อหลักของเครื่องมือ (H1) */
   title: string;
 
-  /** คำอธิบายสั้นๆ (Description) */
+  /** คำอธิบายการใช้งานสั้นๆ */
   description: string;
 
-  /** หมวดหมู่ของเครื่องมือ (เช่น Text Tools, Image Tools) */
+  /** ชื่อหมวดหมู่ที่จะแสดงใน Breadcrumb */
   categoryLabel: string;
 
-  /** Slug ของเครื่องมือ (ใช้สำหรับระบบ Favorite) */
+  /** รหัสเครื่องมือ (Slug) ใช้สำหรับเก็บ Favorite (ถ้าไม่ส่งมาจะไม่แสดงปุ่มดาว) */
   slug?: string;
 
-  /** Icon Component จาก Lucide React */
+  /** ไอคอนประจำเครื่องมือ (Lucide React Component) */
   icon?: LucideIcon;
 
-  /** Class เพิ่มเติมสำหรับปรับแต่ง Container */
+  /** Custom CSS Class */
   className?: string;
 }
 
 // =============================================================================
-// Component: ToolHeader
+// Component
 // =============================================================================
 export function ToolHeader({
   title,
@@ -44,14 +45,14 @@ export function ToolHeader({
   return (
     <div
       className={cn(
-        // Animation: Fade-in & Slide-down เมื่อเข้าหน้าเว็บ
-        "mb-8 space-y-6 animate-in fade-in slide-in-from-top-2 duration-500",
+        // Layout & Spacing
+        "mb-8 space-y-6",
+        // Animation: Fade-in & Slide-down นุ่มนวลเมื่อเข้าหน้าเว็บ
+        "animate-in fade-in slide-in-from-top-2 duration-500",
         className
       )}
     >
-      {/* ---------------------------------------------------------------------------
-          1. Breadcrumb Navigation
-      --------------------------------------------------------------------------- */}
+      {/* Breadcrumb Navigation */}
       <nav
         aria-label="Breadcrumb"
         className="flex items-center gap-2 text-sm text-muted-foreground"
@@ -63,7 +64,10 @@ export function ToolHeader({
         >
           <Link href="/" className="flex items-center gap-1">
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            {/* Responsive Text: ซ่อน "to Home" บนมือถือเพื่อประหยัดพื้นที่ */}
+            {/* Responsive Text Logic:
+                - Mobile: แสดงแค่ "Back" ประหยัดที่
+                - Desktop: แสดง "Back to Home" เต็มยศ
+            */}
             <span className="hidden sm:inline">Back to Home</span>
             <span className="sm:hidden">Back</span>
           </Link>
@@ -79,43 +83,43 @@ export function ToolHeader({
         <span className="font-medium text-foreground">{categoryLabel}</span>
       </nav>
 
-      {/* ---------------------------------------------------------------------------
-          2. Header Content Area
-      --------------------------------------------------------------------------- */}
+      {/* Main Header Content (Icon + Title + Actions) */}
       <div className="flex flex-col md:flex-row md:items-start gap-5 md:gap-8">
-        {/* [A] Desktop Icon Section: แสดง Icon ขนาดใหญ่ด้านซ้าย (ซ่อนบน Mobile) */}
+        {/* Desktop Icon: กล่องใหญ่ด้านซ้าย (แสดงเฉพาะจอ MD ขึ้นไป) */}
         {Icon && (
           <div className="hidden md:flex shrink-0 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 text-primary shadow-sm">
             <Icon size={40} strokeWidth={1.5} />
           </div>
         )}
 
-        {/* [B] Text & Actions Section */}
+        {/* Text & Actions Area */}
         <div className="space-y-3 flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">
             {/* Title Wrapper */}
             <div className="flex items-center gap-3">
-              {/* [C] Mobile Icon: แสดง Icon ขนาดเล็กคู่กับชื่อ (ซ่อนบน Desktop) */}
+              {/* Mobile Icon: กล่องเล็กข้างชื่อ (แสดงเฉพาะจอ Mobile) */}
               {Icon && (
                 <div className="md:hidden p-2.5 rounded-xl bg-primary/10 text-primary shrink-0 border border-primary/20">
                   <Icon size={24} />
                 </div>
               )}
 
-              {/* Main Title */}
+              {/* H1 Title */}
               <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl leading-tight">
                 {title}
               </h1>
             </div>
 
-            {/* Favorite Button (Client Component) 
-                - วางไว้ตรงนี้เพื่อให้ User กดง่าย
-                - shrink-0 ป้องกันปุ่มบีบตัวเมื่อชื่อยาว
+            {/* Favorite Button (Optional)
+                - shrink-0: ป้องกันปุ่มหดตัว
+                - mt-1: ปรับตำแหน่งแนวตั้งให้ตรงกับ Optical Center ของ Font H1
             */}
-            {slug && <FavoriteButton slug={slug} className="shrink-0 mt-1.5" />}
+            {slug && (
+              <FavoriteButton slug={slug} className="shrink-0 mt-1 md:mt-2" />
+            )}
           </div>
 
-          {/* Description */}
+          {/* Description Text */}
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl">
             {description}
           </p>

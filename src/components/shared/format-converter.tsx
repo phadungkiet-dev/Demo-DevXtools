@@ -17,7 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 // Icons
-import { ArrowRight, Lock, Code2, AlertCircle } from "lucide-react";
+import { ArrowRight, Lock, Code2, AlertCircle, FileJson } from "lucide-react";
 
 // Shared Components
 import {
@@ -29,20 +29,19 @@ import {
 } from "@/components/shared/buttons";
 
 // Logic & Utils
-import { convertData, DataFormat } from "@/lib/converters";
+// ✅ Import DataFormat มาใช้เพื่อ Type Safety
+import { convertData, type DataFormat } from "@/lib/converters";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
 // Constants & Types
 // =============================================================================
+// ✅ ตัด typescript ออก เหลือแค่ 4 format
 const SUPPORTED_FORMATS: DataFormat[] = ["json", "yaml", "xml", "csv"];
 
 interface FormatConverterProps {
-  /** Format เริ่มต้นของ Input */
   defaultInput: DataFormat;
-  /** Format เริ่มต้นของ Output */
   defaultOutput: DataFormat;
-  /** ล็อคไม่ให้เปลี่ยน Format Input หรือไม่ (ถ้าล็อค จะซ่อนปุ่ม Swap) */
   fixedInput?: boolean;
 }
 
@@ -54,42 +53,32 @@ export function FormatConverter({
   defaultOutput,
   fixedInput = false,
 }: FormatConverterProps) {
-  // --- State Management ---
-  const [input, setInput] = useState("");
-  const [output, setOutput] = useState("");
+  // --- State ---
+  const [input, setInput] = useState<string>("");
+  const [output, setOutput] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
+  // ✅ Generic Type Enforcement
   const [inputFormat, setInputFormat] = useState<DataFormat>(defaultInput);
   const [outputFormat, setOutputFormat] = useState<DataFormat>(defaultOutput);
 
   // --- Handlers ---
-
   const handleInputFormatChange = (newFormat: DataFormat) => {
     setInputFormat(newFormat);
     if (newFormat === outputFormat) {
-      const nextAvailableFormat = SUPPORTED_FORMATS.find(
-        (f) => f !== newFormat
-      );
-      if (nextAvailableFormat) setOutputFormat(nextAvailableFormat);
+      const nextAvailable = SUPPORTED_FORMATS.find((f) => f !== newFormat);
+      if (nextAvailable) setOutputFormat(nextAvailable);
     }
   };
 
-  /**
-   * 🔀 Swap Logic
-   * สลับทั้ง Format และ Content (เอา Output กลับไปเป็น Input)
-   */
   const handleSwap = () => {
-    if (fixedInput) return; // ป้องกันการ Swap ถ้าถูกล็อค
-
+    if (fixedInput) return;
     setInputFormat(outputFormat);
     setOutputFormat(inputFormat);
-    setInput(output); // ย้ายผลลัพธ์ไปเป็น Input
-    // Output จะถูกคำนวณใหม่โดย useEffect
+    setInput(output);
   };
 
-  /**
-   * ⚡ Effect: Auto Conversion
-   */
+  // --- Effect: Auto Convert ---
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!input.trim()) {
@@ -100,6 +89,7 @@ export function FormatConverter({
 
       try {
         const result = convertData(input, inputFormat, outputFormat);
+
         if (result.startsWith("Error")) {
           setError(result);
           setOutput("");
@@ -108,8 +98,8 @@ export function FormatConverter({
           setError(null);
         }
       } catch (err) {
-        console.error("Conversion Logic Error:", err);
-        setError("Conversion failed. Check your input syntax.");
+        console.error(err);
+        setError("Conversion failed.");
         setOutput("");
       }
     }, 500);
@@ -119,13 +109,10 @@ export function FormatConverter({
 
   // --- Render ---
   return (
-    // ✅ Layout: Flex Column (Mobile) -> Flex Row (Desktop)
-    <div className="flex flex-col lg:flex-row items-stretch lg:h-[750px] gap-4 transition-all duration-300">
-      {/* ================= 1. LEFT CARD (INPUT) ================= */}
+    <div className="flex flex-col lg:flex-row items-stretch lg:h-[600px] gap-4 transition-all duration-300">
+      {/* LEFT CARD (INPUT) */}
       <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
-        {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 gap-3 min-h-[60px] shrink-0">
-          {/* Format Selector */}
           <div className="flex items-center gap-2">
             <div
               className={cn(
@@ -145,10 +132,8 @@ export function FormatConverter({
             >
               <SelectTrigger
                 className={cn(
-                  "h-8 w-[100px] text-xs font-medium border-border/60",
-                  fixedInput
-                    ? "opacity-100 cursor-not-allowed bg-muted text-foreground font-bold border-transparent shadow-none"
-                    : "bg-background"
+                  "h-8 w-[100px] text-xs font-medium border-border/60 shadow-sm",
+                  fixedInput ? "cursor-not-allowed bg-muted" : "bg-background"
                 )}
               >
                 <SelectValue />
@@ -163,15 +148,13 @@ export function FormatConverter({
             </Select>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-1 self-end sm:self-auto">
             <PasteButton onPaste={setInput} />
             <ClearButton onClear={() => setInput("")} disabled={!input} />
           </div>
         </div>
 
-        {/* Editor Area */}
-        <CardContent className="p-0 flex-1 relative min-h-0 group">
+        <CardContent className="p-0 flex-1 relative min-h-[200px] group">
           <Textarea
             className={cn(
               "w-full h-full resize-none border-0 focus-visible:ring-0 p-4 text-sm font-mono leading-relaxed bg-transparent rounded-none shadow-none text-foreground/90",
@@ -186,29 +169,25 @@ export function FormatConverter({
         </CardContent>
       </Card>
 
-      {/* ================= 2. MIDDLE (SWAP BUTTON / ARROW) ================= */}
-      <div className="flex items-center justify-center shrink-0 -my-2 lg:my-0">
+      {/* MIDDLE (SWAP) */}
+      <div className="flex items-center justify-center shrink-0 -my-2 lg:my-0 relative z-10">
         {fixedInput ? (
-          // ถ้า Fixed Input: แสดงแค่ลูกศรธรรมดา
-          <div className="bg-muted text-muted-foreground p-2 rounded-full border border-border/50 rotate-90 lg:rotate-0">
+          <div className="bg-muted text-muted-foreground p-2 rounded-full border border-border/50 shadow-sm rotate-90 lg:rotate-0">
             <ArrowRight size={16} />
           </div>
         ) : (
-          // ถ้าไม่ Fixed: แสดงปุ่ม Swap
           <SwapButton
             onSwap={handleSwap}
-            className="h-10 w-10 border shadow-md bg-background hover:bg-muted text-primary"
+            className="h-10 w-10 border shadow-md bg-background hover:bg-muted text-primary hover:text-primary transition-transform hover:scale-105 active:scale-95"
           />
         )}
       </div>
 
-      {/* ================= 3. RIGHT CARD (OUTPUT) ================= */}
+      {/* RIGHT CARD (OUTPUT) */}
       <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
-        {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 gap-3 min-h-[60px] shrink-0">
-          {/* Format Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-muted-foreground uppercase mr-1">
+            <span className="text-[10px] font-extrabold text-muted-foreground/70 uppercase tracking-widest mr-1">
               To
             </span>
             <Select
@@ -228,38 +207,41 @@ export function FormatConverter({
             </Select>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-1 self-end sm:self-auto">
             <DownloadButton
               text={output}
               filename={`converted.${outputFormat}`}
               extension={outputFormat}
-              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
+              disabled={!output || !!error}
+              className="h-8 w-8"
             />
             <CopyButton
               text={output}
-              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
+              disabled={!output || !!error}
+              className="h-8 w-8"
             />
           </div>
         </div>
 
-        {/* Result Area */}
-        <CardContent className="p-0 flex-1 relative bg-muted/10 min-h-0 flex flex-col">
+        <CardContent className="p-0 flex-1 relative bg-muted/10 min-h-[200px] flex flex-col">
           {error ? (
-            // Error State
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-destructive/80 gap-3 animate-in fade-in zoom-in-95 duration-300">
-              <div className="p-3 bg-destructive/10 rounded-full">
+              <div className="p-3 bg-destructive/10 rounded-full ring-1 ring-destructive/20">
                 <AlertCircle size={32} strokeWidth={1.5} />
               </div>
               <div className="text-center space-y-1">
-                <p className="font-semibold">Conversion Error</p>
-                <p className="text-xs opacity-80 font-mono max-w-[250px] break-words bg-background/50 px-2 py-1 rounded border border-destructive/20">
+                <p className="font-semibold text-sm">Conversion Failed</p>
+                <p className="text-xs opacity-80 font-mono max-w-[280px] break-words bg-background/50 px-3 py-1.5 rounded border border-destructive/20">
                   {error}
                 </p>
               </div>
             </div>
+          ) : !output ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/40 gap-3">
+              <FileJson size={48} strokeWidth={1} className="opacity-20" />
+              <p className="text-sm font-medium">Result will appear here...</p>
+            </div>
           ) : (
-            // Success State
             <Textarea
               className={cn(
                 "w-full h-full resize-none border-0 focus-visible:ring-0 p-4 text-sm font-mono leading-relaxed bg-transparent rounded-none shadow-none",

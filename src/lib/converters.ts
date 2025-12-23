@@ -1,11 +1,9 @@
-// devtoolx\src\lib\converters.ts
 import yaml from "js-yaml";
 import Papa from "papaparse";
 import { js2xml, xml2js } from "xml-js";
 
 export type DataFormat = "json" | "yaml" | "xml" | "csv";
 
-// ✅ 1. เปลี่ยน return type เป็น unknown
 const parseInput = (input: string, format: DataFormat): unknown => {
   try {
     switch (format) {
@@ -16,17 +14,24 @@ const parseInput = (input: string, format: DataFormat): unknown => {
       case "xml":
         return xml2js(input, { compact: true });
       case "csv":
-        const result = Papa.parse(input, { header: true });
+        // เพิ่ม skipEmptyLines เพื่อป้องกันแถวว่างทำ Error
+        const result = Papa.parse(input, {
+          header: true,
+          skipEmptyLines: true,
+        });
+        if (result.errors.length > 0) {
+          throw new Error(result.errors[0].message);
+        }
         return result.data;
       default:
         return null;
     }
-  } catch (e) {
+  } catch (_e) {
+    // ✅ ใช้ _e แก้ปัญหา ESLint: no-unused-vars
     throw new Error(`Invalid ${format.toUpperCase()} format`);
   }
 };
 
-// ✅ 2. เปลี่ยน parameter type เป็น unknown
 const formatOutput = (data: unknown, format: DataFormat): string => {
   try {
     switch (format) {
@@ -36,15 +41,14 @@ const formatOutput = (data: unknown, format: DataFormat): string => {
         return yaml.dump(data);
       case "xml":
         return js2xml(data as object, { compact: true, spaces: 2 });
-
-      // ✅ แก้ไขบรรทัดนี้: เปลี่ยน as any[] เป็น as Record<string, unknown>[]
       case "csv":
+        // ✅ Cast type ให้ถูกต้องตามที่ Papa Parse ต้องการ
         return Papa.unparse(data as Record<string, unknown>[]);
-
       default:
         return "";
     }
-  } catch (e) {
+  } catch (_e) {
+    // ✅ ใช้ _e แก้ปัญหา ESLint
     return `Error converting to ${format.toUpperCase()}`;
   }
 };
@@ -59,7 +63,7 @@ export const convertData = (
     const data = parseInput(input, from);
     return formatOutput(data, to);
   } catch (err) {
-    // ✅ 3. Handle Error Type
+    // ✅ Handle Error Type อย่างถูกต้อง
     if (err instanceof Error) {
       return `Error: ${err.message}`;
     }

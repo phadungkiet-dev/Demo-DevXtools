@@ -6,11 +6,14 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 // Config & Types
 import { toolCategories, allTools, ToolConfig } from "@/config/tools";
+
 // Hooks
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentTools } from "@/hooks/useRecentTools";
+
 // UI Components
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -21,21 +24,26 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Logo } from "@/components/layout/logo";
+
 // Icons
-import { Menu, Box, Star, Clock, ChevronRight, LayoutGrid } from "lucide-react";
+import { Menu, Star, Clock, ChevronRight, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
 // Main Component
 // =============================================================================
 export function MobileNav() {
+  // State
   const [open, setOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Hooks
   const pathname = usePathname();
   const { favorites } = useFavorites();
   const { recents } = useRecentTools();
 
-  const [isMounted, setIsMounted] = useState(false);
-
+  // Effect 1: Hydration Check
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsMounted(true);
@@ -43,6 +51,7 @@ export function MobileNav() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Effect 2: Auto Close Menu on Route Change
   useEffect(() => {
     const timer = setTimeout(() => {
       setOpen(false);
@@ -50,6 +59,7 @@ export function MobileNav() {
     return () => clearTimeout(timer);
   }, [pathname]);
 
+  // Memo: Filter Tools
   const favoriteToolsList = useMemo(() => {
     if (!isMounted) return [];
     return allTools.filter((t) => favorites.includes(t.slug));
@@ -63,6 +73,7 @@ export function MobileNav() {
       .slice(0, 3); // ✅ LIMIT 3: ตัดเหลือแค่ 3 รายการสำหรับ Mobile
   }, [isMounted, recents]);
 
+  // Prevent Hydration Mismatch for Icon
   if (!isMounted) {
     return (
       <Button
@@ -78,6 +89,7 @@ export function MobileNav() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
+      {/* Trigger Button (Hamburger) */}
       <SheetTrigger asChild>
         <Button
           variant="ghost"
@@ -89,20 +101,20 @@ export function MobileNav() {
         </Button>
       </SheetTrigger>
 
+      {/* Sheet Content (Sidebar Menu) */}
       <SheetContent
         side="left"
         className="w-[300px] sm:w-[320px] p-0 border-r-border/60 flex flex-col h-full bg-background/95 backdrop-blur-xl overflow-hidden"
       >
-        {/* 1. Header (Fixed) */}
+        {/* Header Section */}
         <SheetHeader className="px-6 py-4 border-b border-border/40 text-left shrink-0">
           <Link
             href="/"
             className="flex items-center gap-3 group"
             onClick={() => setOpen(false)}
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm border border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-              <Box size={20} strokeWidth={2.5} />
-            </div>
+            <Logo size={36} className="shrink-0" />
+
             <div className="flex flex-col">
               <SheetTitle className="font-bold text-lg leading-none tracking-tight group-hover:text-primary transition-colors">
                 CodeXKit
@@ -114,12 +126,11 @@ export function MobileNav() {
           </Link>
         </SheetHeader>
 
-        {/* 2. Scrollable Content Area */}
+        {/* Scrollable Menu Items */}
         <div className="flex-1 min-h-0 w-full">
           <ScrollArea className="h-full w-full">
-            {/* ✅ แก้ไข: ปรับ pb-20 เป็น pb-6 เพราะไม่มี Footer แล้ว */}
-            <div className="flex flex-col gap-6 p-4 pb-6">
-              {/* Favorites */}
+            <div className="flex flex-col gap-6 p-4 pb-10">
+              {/* --- Favorites Group --- */}
               {favoriteToolsList.length > 0 && (
                 <div className="space-y-1">
                   <SectionHeader
@@ -143,7 +154,7 @@ export function MobileNav() {
                 </div>
               )}
 
-              {/* Recents */}
+              {/* --- Recents Group --- */}
               {recentToolsList.length > 0 && (
                 <div className="space-y-1">
                   <SectionHeader
@@ -167,8 +178,9 @@ export function MobileNav() {
                 </div>
               )}
 
-              {/* Categories */}
+              {/* --- All Categories Group --- */}
               <div className="space-y-6">
+                {/* Divider if needed */}
                 {(favoriteToolsList.length > 0 ||
                   recentToolsList.length > 0) && (
                   <div className="relative py-2">
@@ -183,7 +195,9 @@ export function MobileNav() {
                   </div>
                 )}
 
+                {/* Loop Categories */}
                 {toolCategories.map((category) => {
+                  // Filter Tools in Category
                   const tools = allTools.filter(
                     (t) => t.category === category.id
                   );
@@ -214,14 +228,15 @@ export function MobileNav() {
             </div>
           </ScrollArea>
         </div>
-
-        {/* ❌ ลบ Footer (Theme Toggle) ออกแล้ว */}
       </SheetContent>
     </Sheet>
   );
 }
 
-// ... Helper Components (เหมือนเดิม) ...
+// =============================================================================
+// Helper Components
+// =============================================================================
+// Section Header (หัวข้อกลุ่ม)
 function SectionHeader({
   icon: Icon,
   label,
@@ -243,6 +258,7 @@ function SectionHeader({
   );
 }
 
+// Mobile Link Item (รายการเมนู)
 interface MobileLinkProps {
   children: React.ReactNode;
   href: string;
@@ -265,14 +281,16 @@ function MobileLink({
       href={href}
       className={cn(
         "group relative grid grid-cols-[auto_1fr_auto] items-center gap-3 p-2 rounded-lg transition-all text-sm outline-none",
+        // Active State Styling
         isActive
           ? "bg-primary/10 text-primary font-medium shadow-sm"
           : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
       )}
     >
+      {/* Icon Wrapper */}
       <div
         className={cn(
-          "flex items-center justify-center w-6 h-6 rounded-md transition-colors",
+          "flex items-center justify-center w-8 h-8 rounded-md transition-colors",
           isActive
             ? "bg-primary/10 text-primary"
             : "bg-transparent text-muted-foreground/70 group-hover:text-foreground"
@@ -280,7 +298,11 @@ function MobileLink({
       >
         {Icon && <Icon className="h-4 w-4" />}
       </div>
+
+      {/* Label */}
       <span className="truncate">{children}</span>
+
+      {/* Right Side Indicator (New Badge or Chevron) */}
       <div className="flex items-center justify-end">
         {isNew ? (
           <span className="text-[9px] bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-bold">
@@ -292,6 +314,8 @@ function MobileLink({
           )
         )}
       </div>
+
+      {/* Active Indicator Line */}
       {isActive && (
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r-full" />
       )}

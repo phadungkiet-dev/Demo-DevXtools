@@ -47,7 +47,7 @@ export default function Icon() {
             paddingTop: "1px", // จัดกึ่งกลางทางสายตา
           }}
         >
-          CXD
+          CXK
         </div>
       </div>
     ),

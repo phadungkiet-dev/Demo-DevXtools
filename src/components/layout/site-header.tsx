@@ -5,14 +5,17 @@
 // =============================================================================
 import { useEffect, useState } from "react";
 import Link from "next/link";
+
 // UI Components
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/layout/theme-toggle"; // ตรวจสอบ Path ให้ถูกต้อง
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { CommandMenu } from "@/components/layout/command-menu";
 import { MobileNav } from "@/components/layout/mobile-nav";
+
 // Store & Utils
 import { useSidebarStore } from "@/store/use-sidebar-store";
 import { cn } from "@/lib/utils";
+
 // Icons
 import { Github } from "lucide-react";
 
@@ -20,19 +23,29 @@ import { Github } from "lucide-react";
 // Main Component
 // =============================================================================
 export function SiteHeader() {
-  // --- State & Hooks ---
-  const [isScrolled, setIsScrolled] = useState(false);
-  const { isOpen } = useSidebarStore(); // ใช้เช็คสถานะ Sidebar เพื่อขยับ Header หลบ
+  // --- Global State ---
+  const { isOpen } = useSidebarStore();
 
-  // --- Effect: Scroll Detection ---
+  // --- Local State ---
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // --- Effects ---
+  // Mount Check: รอให้ Component โหลดเสร็จก่อน Apply layout ที่เกี่ยวกับ LocalStorage
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Scroll Detection: ตรวจจับการเลื่อนหน้าจอเพื่อเปลี่ยน Style
   useEffect(() => {
     const handleScroll = () => {
-      // Optimization: Update state only if value changes
+      // Optimization: Update state เฉพาะเมื่อค่าเปลี่ยนไปจริงๆ
       const scrolled = window.scrollY > 0;
       setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
     };
 
-    // Passive listener improves scrolling performance
+    // passive: true ช่วยเรื่อง Performance ของการ Scroll
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -40,40 +53,47 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        // 1. Positioning & Layout Core
-        "fixed top-0 right-0 z-40 h-16 border-b px-4 md:px-6",
+        // -------------------------------------------------------
+        // **Positioning & Core Layout
+        // -------------------------------------------------------
+        "fixed top-0 right-0 z-40 h-16 px-4 md:px-6",
         "flex items-center justify-between gap-4",
-        "transition-[left,background-color,backdrop-filter] duration-300 ease-in-out",
+        "border-b transition-[left,background-color,backdrop-filter] duration-300 ease-in-out",
 
-        // 2. Responsive Positioning (Key Logic)
-        // Mobile: เต็มจอ (left-0)
-        "left-0",
-        // Desktop: ขยับจุดเริ่มต้น (left) ตามความกว้าง Sidebar
-        isOpen ? "md:left-72" : "md:left-[72px]",
+        // -------------------------------------------------------
+        // **Responsive Positioning (Key Logic)
+        // - Mobile: ชิดซ้ายสุด (left-0)
+        // - Desktop: ขยับซ้ายหนี Sidebar (288px หรือ 72px)
+        // -------------------------------------------------------
+        "left-0", // Default (Mobile)
+        // Logic: ถ้า Mount แล้ว + Sidebar เปิด -> เว้นซ้าย 72 (288px), ถ้าปิด -> 72px
+        isMounted && isOpen ? "md:left-72" : "md:left-[72px]",
 
-        // 3. Visual Style (Glassmorphism)
+        // -------------------------------------------------------
+        // **Visual Style (Scroll Dependent)
+        // -------------------------------------------------------
         isScrolled
           ? "bg-background/80 backdrop-blur-xl border-border/40 shadow-sm supports-[backdrop-filter]:bg-background/60"
-          : "bg-transparent border-transparent"
+          : "bg-background/40 backdrop-blur-sm border-transparent"
       )}
     >
-      {/* ================= LEFT SECTION ================= */}
+      {/* ================= LEFT SECTION (Search & Nav) ================= */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
-        {/* Mobile Navigation Trigger (Visible only on mobile) */}
+        {/* Mobile Hamburger Menu (ซ่อนใน Desktop) */}
         <div className="md:hidden shrink-0">
           <MobileNav />
         </div>
 
-        {/* Search / Command Menu */}
-        {/* max-w-md: จำกัดความกว้างไม่ให้ยาวเกินไปดูไม่สวย */}
+        {/* Global Search / Command Menu */}
+        {/* max-w-md: คุมความกว้างไม่ให้ยาวเกินไปจนเสียสมดุล */}
         <div className="w-full max-w-sm md:max-w-md">
           <CommandMenu />
         </div>
       </div>
 
-      {/* ================= RIGHT SECTION ================= */}
+      {/* ================= RIGHT SECTION (Actions) ================= */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* GitHub Link */}
+        {/* GitHub Link (ซ่อนใน Mobile เพื่อประหยัดพื้นที่) */}
         <Button
           variant="ghost"
           size="icon"
@@ -91,7 +111,7 @@ export function SiteHeader() {
           </Link>
         </Button>
 
-        {/* Theme Toggle */}
+        {/* Dark Mode Toggle */}
         <ThemeToggle />
       </div>
     </header>

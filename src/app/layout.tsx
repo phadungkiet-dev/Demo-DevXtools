@@ -1,33 +1,13 @@
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports =============================================
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google"; // Optimized Google Fonts
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import "./globals.css"; // Global Tailwind Styles
 
-// =============================================================================
-// Font Configuration
-// =============================================================================
-// ใช้ Font optimization ของ Next.js เพื่อลด CLS (Cumulative Layout Shift)
-const geistSans = Geist({
-  variable: "--font-sans", // CSS Variable สำหรับ Tailwind (font-sans)
-  subsets: ["latin"],
-  display: "swap", // แสดง fallback font ก่อนโหลดเสร็จ เพื่อความเร็ว
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-mono", // CSS Variable สำหรับ Tailwind (font-mono)
-  subsets: ["latin"],
-  display: "swap",
-});
-
-// =============================================================================
-// Helper: Base URL Construction
-// =============================================================================
-// คำนวณ URL รากฐานสำหรับการทำ SEO OpenGraph Image
+// Helper: Base URL Construction =========================
 const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return `https://${process.env.NEXT_PUBLIC_APP_URL}`;
@@ -40,14 +20,12 @@ const getBaseUrl = () => {
 
 const baseUrl = getBaseUrl();
 
-// =============================================================================
-// Metadata (SEO)
-// =============================================================================
+// Metadata (SEO) =======================================
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
     default: "CodeXKit - All-in-One Developer Tools",
-    template: "%s | CodeXKit", // รูปแบบ Title หน้าลูก: "JSON Formatter | CodeXKit"
+    template: "%s | CodeXKit",
   },
   description:
     "Free online developer tools: formatters, converters, generators, and more. Open source, fast, and privacy-focused.",
@@ -102,10 +80,7 @@ export const metadata: Metadata = {
   },
 };
 
-// =============================================================================
-// Viewport (Next.js 14+ Separation)
-// =============================================================================
-// แยกการตั้งค่า Viewport ออกจาก Metadata เพื่อการจัดการที่ถูกต้อง
+// Viewport (Next.js 14+ Separation) =======================
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "white" },
@@ -113,12 +88,10 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1, // ป้องกันการ Zoom ที่อาจทำให้ UI พังในบาง App (Optional)
+  maximumScale: 1,
 };
 
-// =============================================================================
-// Root Layout Component
-// =============================================================================
+// Root Layout Component ==========================
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -131,8 +104,8 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased selection:bg-primary/20 selection:text-primary", // Selection style
-          geistSans.variable,
-          geistMono.variable
+          GeistSans.variable,
+          GeistMono.variable
         )}
       >
         {/* ThemeProvider: จัดการ Dark/Light Mode */}

@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports ==================
 import { useState, useMemo } from "react";
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,9 +23,7 @@ import { cn } from "@/lib/utils";
 // Logic
 import { transformers, caseLabels, CaseType } from "@/lib/transformers";
 
-// =============================================================================
-// Main Component
-// =============================================================================
+// Main Component ===============
 export function CaseConverter() {
   // --- State Management ---
   const [input, setInput] = useState("");
@@ -52,13 +48,13 @@ export function CaseConverter() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-600 ease-out">
       {/* ================= INPUT SECTION ================= */}
-      <Card className="border-border/60 shadow-md flex flex-col overflow-hidden bg-card p-0 transition-all hover:shadow-lg">
+      <Card className="border-border/60 shadow-md flex flex-col overflow-hidden bg-card p-0 transition-all hover:shadow-lg gap-2 sm:gap-4">
         {/* Toolbar Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-3 border-b border-border/40 bg-muted/30 min-h-[56px] gap-4 sm:gap-0">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
+        <div className="flex flex-col items-center sm:flex-row justify-between px-6 py-4 md:py-2 border-b border-border/60 bg-muted/40 min-h-[60px] gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 ">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               <Type size={16} />
             </div>
             <span className="text-sm font-semibold text-muted-foreground">
@@ -66,8 +62,17 @@ export function CaseConverter() {
             </span>
           </div>
 
-          {/* ✅ Refactored Toolbar Buttons: ใช้ Shared Components */}
-          <div className="flex flex-wrap items-center gap-1">
+          {/* Refactored Toolbar Buttons: ใช้ Shared Components */}
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-wrap items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment 
+              "justify-center", 
+              "sm:justify-end" 
+            )}
+          >
             <DemoButton onDemo={handleDemo} />
 
             <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
@@ -81,13 +86,22 @@ export function CaseConverter() {
         </div>
 
         {/* Text Area with Stats Overlay */}
-        <CardContent className="p-0 relative min-h-[180px]">
+        <CardContent className="px-1 py-1 relative min-h-[100px] sm:min-h-[180px] ">
           <Textarea
             id="input-text"
             className={cn(
-              "w-full h-full min-h-[180px] resize-y border-0 focus-visible:ring-0 p-6 pb-12 text-base leading-relaxed text-foreground/90 font-mono bg-transparent rounded-none shadow-none",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20",
-              "placeholder:text-muted-foreground/40"
+              // Layout & Sizing (ขนาดและรูปทรง)
+              "w-full h-full min-h-[180px] resize-y overflow-y-auto",
+              // Spacing (ระยะห่างภายใน)
+              "p-4 pb-12",
+              // Typography & Placeholder (ตัวอักษร)
+              "text-base leading-relaxed font-mono text-foreground/90",
+              "placeholder:text-muted-foreground/60",
+              // Appearance Reset (ลบเส้นขอบและพื้นหลังเดิม)
+              "border-0 focus-visible:ring-0 bg-transparent rounded-none shadow-none",
+              // Scrollbar & Selection (การเลื่อนและไฮไลท์)
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+              "selection:bg-primary/20"
             )}
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -96,8 +110,23 @@ export function CaseConverter() {
           />
 
           {/* Real-time Statistics Overlay */}
-          <div className="absolute bottom-3 right-4 flex items-center gap-3 text-[10px] font-mono font-medium text-muted-foreground/70 select-none bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/30 shadow-sm pointer-events-none transition-opacity duration-200">
-            <div className="flex items-center gap-1.5">
+
+          <div
+            className={cn(
+              // Positioning & Layout
+              "absolute bottom-3 right-4 flex items-center gap-3",
+              // Typography
+              "text-[10px] font-mono font-medium text-muted-foreground/70",
+              // Spacing & Shape
+              "px-3 py-1.5 rounded-full",
+              // Visuals (Background, Border, Shadow)
+              "bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm",
+              // Interactivity & Animation
+              "select-none pointer-events-none transition-opacity duration-200"
+            )}
+          >
+            {/* flex items-center gap-1.5 */}
+            <div className="flex items-center gap-1">
               <FileText size={10} />
               <span>{stats.chars} chars</span>
             </div>
@@ -110,20 +139,32 @@ export function CaseConverter() {
       </Card>
 
       {/* ================= OUTPUTS GRID ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {(Object.keys(transformers) as CaseType[]).map((key) => {
           // Calculate result on the fly (Fast & Efficient)
           const result = input ? transformers[key](input) : "";
-
           return (
             <Card
               key={key}
-              className="overflow-hidden group hover:border-primary/40 transition-all duration-300 hover:shadow-md bg-card/50"
+              className="overflow-hidden group border border-border/50 hover:border-primary/10 transition-all duration-200 hover:shadow-md bg-card/50 p-0"
             >
               <CardContent className="p-4 space-y-3">
                 {/* Output Header */}
-                <div className="flex items-center justify-between min-h-[28px]">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted px-2.5 py-1 rounded-md border border-border/50 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                <div className="flex items-center justify-between min-h-[30px]">
+                  <span
+                    className={cn(
+                      // Typography (ตัวอักษร)
+                      "text-[10px] font-bold uppercase tracking-widest",
+                      "text-muted-foreground",
+                      // Shape & Spacing (รูปทรงและระยะ)
+                      "px-2.5 py-1 rounded-md border border-border/60",
+                      // Background (สีพื้นหลังปกติ)
+                      "bg-muted/30",
+                      // Interactive States (เมื่อ Hover ที่ Group แม่)
+                      "group-hover:bg-primary/5 group-hover:text-primary",
+                      "transition-colors"
+                    )}
+                  >
                     {caseLabels[key]}
                   </span>
 
@@ -137,11 +178,11 @@ export function CaseConverter() {
                     <DownloadButton
                       text={result}
                       filename={`converted-${key}.txt`}
-                      className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                      className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10"
                     />
                     <CopyButton
                       text={result}
-                      className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                      className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10"
                     />
                   </div>
                 </div>
@@ -149,12 +190,22 @@ export function CaseConverter() {
                 {/* Output Display */}
                 <div
                   className={cn(
-                    "min-h-[4rem] max-h-[160px] overflow-y-auto p-3 rounded-lg border border-border/40 font-mono text-sm break-all relative scrollbar-thin scrollbar-thumb-muted-foreground/20 transition-colors",
-                    result ? "bg-muted/30 text-foreground" : "bg-muted/10"
+                    // Layout & Sizing (ขนาดและการจัดวาง)
+                    "min-h-[60px] max-h-[160px] overflow-y-auto relative",
+                    // Spacing & Shape (ขอบและระยะห่าง)
+                    "p-2 rounded-lg border border-border/40",
+                    // Typography (รูปแบบตัวอักษร)
+                    "font-mono text-sm break-all",
+                    // Scrollbar & Transition (สไตล์สโครลบาร์และอนิเมชั่น)
+                    "scrollbar-thin scrollbar-thumb-muted-foreground/20 transition-colors",
+                    // Conditional State (เปลี่ยนสีพื้นหลัง/ตัวอักษรตามสถานะมีข้อมูลหรือไม่)
+                    result
+                      ? "bg-muted/20 text-foreground"
+                      : "bg-muted/20 text-muted-foreground/60"
                   )}
                 >
                   {result || (
-                    <span className="text-muted-foreground/30 italic select-none text-xs flex items-center justify-center h-full">
+                    <span className="text-muted-foreground/40 italic select-none text-xs flex items-center justify-center h-full">
                       Waiting for input...
                     </span>
                   )}

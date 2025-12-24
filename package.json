@@ -35,6 +35,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "diff": "^8.0.2",
+    "geist": "^1.5.1",
     "isomorphic-dompurify": "^2.34.0",
     "js-base64": "^3.7.8",
     "js-yaml": "^4.1.1",

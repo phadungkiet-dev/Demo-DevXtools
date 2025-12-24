@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports =====================
 import { useState, useEffect, useMemo } from "react";
 // UI Components
 import { Slider } from "@/components/ui/slider";
@@ -29,9 +27,7 @@ import {
 import { generateLorem, LoremType } from "@/lib/generators";
 import { cn } from "@/lib/utils";
 
-// =============================================================================
-// Main Component
-// =============================================================================
+// Main Component =================
 export function LoremIpsumGenerator() {
   // --- State Management ---
   const [count, setCount] = useState<number>(3);
@@ -40,11 +36,7 @@ export function LoremIpsumGenerator() {
   const [seed, setSeed] = useState(0); // Trigger for manual regeneration
   const [output, setOutput] = useState("");
 
-  /**
-   * 🔄 Effect: Generate Text
-   * ทำงานเมื่อ count, type, settings, หรือ seed เปลี่ยนแปลง
-   * ใช้ setTimeout(0) เพื่อเลื่อนการทำงานไปหลัง render cycle (non-blocking UI)
-   */
+  // Effect: Generate Text
   useEffect(() => {
     const timer = setTimeout(() => {
       const text = generateLorem(count, type, startWithLorem);
@@ -53,10 +45,7 @@ export function LoremIpsumGenerator() {
     return () => clearTimeout(timer);
   }, [count, type, startWithLorem, seed]);
 
-  /**
-   * 📊 Derived State: Statistics
-   * คำนวณจำนวนตัวอักษรและคำแบบ Real-time
-   */
+  // Derived State: Statistics
   const stats = useMemo(() => {
     if (!output) return { chars: 0, words: 0 };
     return {
@@ -68,14 +57,30 @@ export function LoremIpsumGenerator() {
 
   return (
     // Grid Layout: Mobile Stacked, Desktop Split 1:2 Fixed Height
-    <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all animate-in fade-in duration-500">
+    <div
+      className={cn(
+        // Layout & Grid System (โครงสร้าง)
+        "grid gap-6 lg:grid-cols-3 lg:h-[500px]",
+        // Animation & Transition (การเคลื่อนไหว)
+        "transition-all animate-in fade-in duration-500"
+      )}
+    >
       {/* ================= LEFT PANEL: SETTINGS ================= */}
-      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm p-0 overflow-hidden">
-        <CardContent className="p-6 flex flex-col h-full gap-6">
+      <Card
+        className={cn(
+          // Grid & Layout (การจัดวางใน Grid และ Flexbox)
+          "lg:col-span-1 flex flex-col h-full",
+          // Visuals (พื้นหลัง, ขอบ, และเงา)
+          "bg-card backdrop-blur-sm border-border/60 shadow-md",
+          // Container Style (การตัดขอบและ Padding)
+          "p-0 overflow-hidden"
+        )}
+      >
+        <CardContent className="p-4 flex flex-col h-full gap-6">
           {/* Header */}
-          <div className="flex items-center gap-2 pb-4 border-b border-border/50">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
-              <Settings2 size={18} />
+          <div className="flex items-center gap-2 pb-4 border-b border-border/40">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
+              <Settings2 size={16} />
             </div>
             <h3 className="font-bold text-sm text-foreground/80 uppercase tracking-wide">
               Generator Settings
@@ -110,7 +115,18 @@ export function LoremIpsumGenerator() {
                 <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
                   <Hash size={14} /> Quantity
                 </Label>
-                <span className="inline-flex items-center justify-center min-w-[2.5rem] h-7 rounded bg-primary/10 text-primary text-sm font-bold shadow-sm border border-primary/20">
+                <span
+                  className={cn(
+                    // Layout & Alignment (การจัดวาง)
+                    "inline-flex items-center justify-center",
+                    // Sizing & Shape (ขนาดและรูปร่าง)
+                    "min-w-[2.5rem] h-7 rounded",
+                    // Typography (ตัวอักษร)
+                    "text-sm font-bold text-primary",
+                    // Visuals (สีพื้นหลังและขอบ)
+                    "bg-primary/10 border border-primary/20 shadow-sm"
+                  )}
+                >
                   {count}
                 </span>
               </div>
@@ -127,10 +143,19 @@ export function LoremIpsumGenerator() {
             {/* Control: Start with Lorem Toggle */}
             <div
               className={cn(
-                "flex items-center justify-between p-3 rounded-xl border border-border/40 transition-all cursor-pointer group",
+                // Layout & Spacing (การจัดวางและระยะห่าง)
+                "flex items-center justify-between p-3",
+
+                // Shape & Border (รูปร่างและเส้นขอบพื้นฐาน)
+                "rounded-xl border border-border/40",
+
+                // Interactivity (การตอบสนองพื้นฐาน)
+                "cursor-pointer group transition-all",
+
+                // Conditional State (เปลี่ยนสีตามสถานะ Checked/Unchecked)
                 startWithLorem
-                  ? "bg-primary/5 border-primary/20"
-                  : "bg-muted/20 hover:bg-muted/40"
+                  ? "bg-primary/5 border-primary/20" // Active State
+                  : "bg-muted/20 hover:bg-muted/40" // Inactive State
               )}
               onClick={() => setStartWithLorem(!startWithLorem)}
             >
@@ -143,7 +168,7 @@ export function LoremIpsumGenerator() {
                       : "bg-muted text-muted-foreground"
                   )}
                 >
-                  <Quote size={18} className="fill-current" />
+                  <Quote size={14} className="fill-current" />
                 </div>
                 <div className="space-y-0.5">
                   <Label className="text-sm font-medium cursor-pointer">
@@ -167,51 +192,113 @@ export function LoremIpsumGenerator() {
             <RegenerateButton
               label="Regenerate Text"
               onRegenerate={() => setSeed((s) => s + 1)}
-              variant="default" // ใช้สีทึบ
-              className="w-full h-11 font-semibold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+              variant="default"
+              className="w-full h-10 font-semibold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* ================= RIGHT PANEL: OUTPUT ================= */}
-      <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0 transition-all hover:shadow-lg">
+      {/* <Card className="border-border/60 shadow-md flex flex-col overflow-hidden bg-card p-0 transition-all hover:shadow-lg gap-2 sm:gap-4"></Card> */}
+      {/* <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0 transition-all hover:shadow-lg"></Card> */}
+      <Card
+        className={cn(
+          // Grid & Flex Layout (การจัดวางและขนาด)
+          "lg:col-span-2 h-full flex flex-col overflow-hidden",
+          // Visuals (พื้นหลัง, ขอบ, และเงา)
+          "bg-card border-border/60 shadow-md",
+          // Spacing (ระยะห่างภายในและระหว่างลูก)
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction (การตอบสนองเมื่อ Hover)
+          "transition-all hover:shadow-lg"
+        )}
+      >
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px] gap-3">
+        <div
+          className={cn(
+            // Layout & Direction (การจัดวางและทิศทาง)
+            "flex flex-col sm:flex-row justify-between",
+            "sm:items-center",
+            // Sizing & Spacing (ขนาดและระยะห่าง)
+            "min-h-[60px]",
+            "px-6 py-4 md:py-2",
+            "gap-4",
+            // Visuals (พื้นหลังและเส้นขอบ)
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
           {/* Stats Badges */}
-          <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground font-mono">
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex items-center gap-3",
+              "w-full sm:w-auto",
+
+              // Alignment
+              "justify-center sm:justify-start",
+
+              // Typography
+              "text-xs font-medium font-mono text-muted-foreground"
+            )}
+          >
             <div className="flex items-center gap-1.5 bg-background px-3 py-1.5 rounded-md border border-border/50 shadow-sm">
-              <span className="text-foreground font-bold">{stats.chars}</span>{" "}
+              <span className="text-foreground/80 font-bold">
+                {stats.chars}
+              </span>{" "}
               chars
             </div>
             <div className="flex items-center gap-1.5 bg-background px-3 py-1.5 rounded-md border border-border/50 shadow-sm">
-              <span className="text-foreground font-bold">{stats.words}</span>{" "}
+              <span className="text-foreground/80  font-bold">
+                {stats.words}
+              </span>{" "}
               words
             </div>
           </div>
 
           {/* Actions: Download & Copy */}
-          <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex items-center gap-2",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-end"
+            )}
+          >
             <DownloadButton
               text={output}
               filename="lorem-ipsum"
-              extension="txt" // กำหนดนามสกุลไฟล์
-              className="h-9 w-9 hover:bg-background hover:text-primary transition-colors"
+              extension="txt"
+              // h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
             />
             <CopyButton
               text={output}
-              className="h-9 w-9 hover:bg-background hover:text-primary transition-colors"
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
             />
           </div>
         </div>
 
         {/* Output Textarea */}
-        <CardContent className="p-0 flex-1 relative min-h-[300px] lg:min-h-0">
+        <CardContent className="px-1 py-1 relative min-h-[300px] lg:min-h-0 flex-1">
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-8 text-base leading-relaxed text-foreground/90 font-serif bg-transparent rounded-none shadow-none",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20",
-              "placeholder:text-muted-foreground/30 italic"
+              // Layout & Sizing (ขนาดและการยืดหด)
+              "w-full h-full resize-none",
+              // Spacing (ระยะห่างภายใน - ให้ดูโล่งสบายตา)
+              "p-4 pb-12",
+              // Typography (เน้นความสวยงามแบบ Serif/Italic)
+              "font-serif text-base leading-relaxed italic",
+              "text-foreground/90",
+              // Appearance Reset (ลบเส้นขอบ, เงา, และพื้นหลังเดิม)
+              "border-0 focus-visible:ring-0 bg-transparent rounded-none shadow-none",
+              // Scrollbar & Selection (สไตล์สโครลบาร์และสีไฮไลท์)
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+              "selection:bg-primary/20",
+              // Placeholder (สีข้อความตัวอย่างจางๆ)
+              "placeholder:text-muted-foreground/30"
+            
             )}
             value={output}
             readOnly

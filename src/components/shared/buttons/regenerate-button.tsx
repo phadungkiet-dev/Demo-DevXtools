@@ -1,27 +1,24 @@
 "use client";
 
+// Imports ===================
 import { useState, useEffect } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+// Types ============
 interface RegenerateButtonProps {
   /** ฟังก์ชันที่จะทำงานเมื่อกดปุ่ม */
   onRegenerate: () => void;
-
   /** ข้อความบนปุ่ม (ถ้าไม่มีจะเป็น Icon Only) */
   label?: string;
-
   /** Class เพิ่มเติม */
   className?: string;
-
   /** Disabled state */
   disabled?: boolean;
-
   /** ขนาดปุ่ม */
   size?: "default" | "sm" | "lg" | "icon";
-
   /** รูปแบบปุ่ม */
   variant?:
     | "default"
@@ -30,12 +27,10 @@ interface RegenerateButtonProps {
     | "secondary"
     | "ghost"
     | "link";
-
   /** * ข้อความที่จะแสดงใน Toast
    * (Default: "Regenerated successfully")
    */
   toastMessage?: string;
-
   /** ปิดการใช้งาน Toast หรือไม่ */
   disableToast?: boolean;
 }
@@ -63,7 +58,7 @@ export function RegenerateButton({
     onRegenerate();
     setIsSpinning(true);
 
-    // ✅ Trigger Toast
+    // Trigger Toast
     if (!disableToast) {
       toast(toastMessage, {
         // ใช้ Icon Refresh สีฟ้า เพื่อสื่อถึงการโหลดใหม่/เปลี่ยนค่า
@@ -87,7 +82,7 @@ export function RegenerateButton({
         className={cn(
           "h-4 w-4 transition-all",
           isSpinning && "animate-spin", // Animation หมุน
-          label && "mr-2"
+          label
         )}
       />
       {label}

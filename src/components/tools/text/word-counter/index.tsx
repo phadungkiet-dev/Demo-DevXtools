@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports =============================
 import { useState, useMemo, ElementType } from "react";
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,17 +23,12 @@ import {
 // Utils & Libs
 import { cn } from "@/lib/utils";
 
-// =============================================================================
-// Main Component
-// =============================================================================
+// Main Component ==============================
 export function WordCounter() {
   // --- State Management ---
   const [text, setText] = useState("");
 
-  /**
-   * 📊 Derived State: Statistics Calculation
-   * คำนวณสถิติทั้งหมดในครั้งเดียวผ่าน useMemo เพื่อ Performance ที่ดี
-   */
+  // Derived State: Statistics Calculation
   const stats = useMemo(() => {
     // Trim whitespace to avoid counting empty spaces
     const trimmed = text.trim();
@@ -73,13 +66,44 @@ export function WordCounter() {
 
   return (
     // Grid Layout: Mobile Stacked, Desktop Split 2:1 Fixed Height
-    <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all animate-in fade-in duration-500">
+    // <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all animate-in fade-in duration-500"></div>
+    <div
+      className={cn(
+        "grid gap-6 lg:grid-cols-3 lg:h-[580]",
+        // Animation Core (ท่าทาง: เริ่มต้น + จางเข้า + ลอยขึ้น)
+        "animate-in fade-in slide-in-from-bottom-4",
+        // Animation Timing (ความเร็วและจังหวะ)
+        "duration-600 ease-out",
+        // Animation Staging (การรอ: รอ 0.2 วินาที ก่อนเริ่มเพื่อให้แม่มาครบก่อน)
+        "delay-200 fill-mode-backwards"
+      )}
+    >
       {/* ================= LEFT PANEL: INPUT ================= */}
-      <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0 transition-all hover:shadow-lg">
+      <Card
+        className={cn(
+          // Grid & Flex Layout
+          "lg:col-span-2 h-full flex flex-col overflow-hidden",
+          // Visuals (พื้นหลัง, ขอบ, และเงา)
+          "bg-card border-border/60 shadow-md",
+          // Spacing (ระยะห่างภายในและระหว่างลูก)
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction (การตอบสนองเมื่อ Hover)
+          "transition-all hover:shadow-lg"
+        )}
+      >
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px] gap-3 shrink-0">
+        <div
+          className={cn(
+            // Layout & Direction (การจัดวางและทิศทาง)
+            "flex flex-col sm:flex-row justify-between",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               <PenTool size={16} />
             </div>
             <span className="text-sm font-semibold text-muted-foreground">
@@ -87,8 +111,16 @@ export function WordCounter() {
             </span>
           </div>
 
-          {/* ✅ Actions Toolbar: ใช้ Shared Buttons ทั้งหมด */}
-          <div className="flex items-center gap-1">
+          {/* Actions Toolbar: ใช้ Shared Buttons ทั้งหมด */}
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-warp items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-center sm:justify-end"
+            )}
+          >
             {/* PasteButton: จัดการ Clipboard + Toast ภายในตัว */}
             <PasteButton onPaste={setText} />
 
@@ -97,27 +129,36 @@ export function WordCounter() {
 
             <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
 
-            <div className="flex items-center gap-1">
-              <DownloadButton
-                text={text}
-                filename="word-counter-content"
-                className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
-              />
-              <CopyButton
-                text={text}
-                className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
-              />
-            </div>
+            <DownloadButton
+              text={text}
+              filename="word-counter-content"
+              extension="txt"
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            />
+            <CopyButton
+              text={text}
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            />
           </div>
         </div>
 
         {/* Text Area */}
-        <CardContent className="p-0 flex-1 relative min-h-[300px] lg:min-h-0">
+        <CardContent className="px-1 py-1 relative min-h-[300px] lg:min-h-0 flex-1">
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-base leading-relaxed text-foreground/90 bg-transparent rounded-none shadow-none",
-              "placeholder:text-muted-foreground/40",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent selection:bg-primary/20"
+              // Layout & Sizing
+              "w-full h-full resize-none",
+              // Spacing
+              "p-4 pb-12",
+              // Typography
+              "font-serif text-base leading-relaxed text-foreground/90",
+              // Appearance Reset
+              "border-0 focus-visible:ring-0 bg-transparent rounded-none shadow-none",
+              // Scrollbar & Selection
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+              "selection:bg-primary/20",
+              // Placeholder
+              "placeholder:text-muted-foreground/30"
             )}
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -128,11 +169,20 @@ export function WordCounter() {
       </Card>
 
       {/* ================= RIGHT PANEL: STATS ================= */}
-      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm p-0 overflow-hidden">
-        <CardContent className="p-6 flex flex-col h-full gap-6">
+      <Card
+        className={cn(
+          // Grid & Layout
+          "lg:col-span-1 flex flex-col h-full",
+          // Visuals
+          "bg-card backdrop-blur-sm border-border/60 shadow-md",
+          // Container Style
+          "p-0 overflow-hidden"
+        )}
+      >
+        <CardContent className="p-4 flex flex-col h-full gap-6">
           {/* Header */}
-          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
+          <div className="flex items-center gap-2 pb-4 border-b border-border/40">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               <BarChart3 size={16} />
             </div>
             <h3 className="font-bold text-sm text-foreground/80 uppercase tracking-wide">
@@ -141,10 +191,21 @@ export function WordCounter() {
           </div>
 
           {/* Stats Content */}
-          <div className="space-y-6 flex-1 overflow-y-auto scrollbar-none">
+          <div className="space-y-4 flex-1 overflow-y-auto scrollbar-none">
             {/* Primary Stats Grid (Words & Chars) */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-primary/5 border border-primary/10 p-3 rounded-xl text-center flex flex-col items-center justify-center gap-1 min-h-[90px] shadow-sm">
+              <div
+                className={cn(
+                  // Flexbox Layout
+                  "flex flex-col items-center justify-center gap-1",
+                  // Sizing & Spacing
+                  "min-h-[90px] p-3",
+                  // Visuals
+                  "bg-muted/40 border border-border/50 rounded-xl shadow-sm",
+                  // Typography
+                  "text-center"
+                )}
+              >
                 <span className="text-3xl font-extrabold text-primary tracking-tight">
                   {stats.words.toLocaleString()}
                 </span>
@@ -152,7 +213,18 @@ export function WordCounter() {
                   Words
                 </span>
               </div>
-              <div className="bg-muted/40 border border-border/50 p-3 rounded-xl text-center flex flex-col items-center justify-center gap-1 min-h-[90px] shadow-sm">
+              <div
+                className={cn(
+                  // Flexbox Layout
+                  "flex flex-col items-center justify-center gap-1",
+                  // Sizing & Spacing
+                  "min-h-[90px] p-3",
+                  // Visuals
+                  "bg-muted/40 border border-border/50 rounded-xl shadow-sm",
+                  // Typography
+                  "text-center"
+                )}
+              >
                 <span className="text-3xl font-bold text-foreground tracking-tight">
                   {stats.characters.toLocaleString()}
                 </span>
@@ -184,7 +256,7 @@ export function WordCounter() {
 
           {/* Footer: Estimated Time */}
           <div className="mt-auto pt-4">
-            <div className="bg-muted/30 rounded-lg p-4 space-y-3 border border-border/50 shadow-sm">
+            <div className="bg-muted/40 rounded-xl border border-border/50 shadow-sm p-4">
               <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
                 <Clock className="w-3 h-3" /> Estimated Time
               </div>
@@ -212,9 +284,7 @@ export function WordCounter() {
   );
 }
 
-// =============================================================================
-// Helper Component: Stat Row
-// =============================================================================
+// Helper Component: Stat Row ======================
 interface StatRowProps {
   label: string;
   value: number;
@@ -223,8 +293,19 @@ interface StatRowProps {
 
 function StatRow({ label, value, icon: Icon }: StatRowProps) {
   return (
-    <div className="flex justify-between items-center py-2.5 px-3 border border-transparent hover:border-border/40 hover:bg-muted/40 rounded-lg transition-all">
-      <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+    <div
+      className={cn(
+        // Layout & Alignment
+        "flex justify-between items-center",
+        // Spacing
+        "px-2 py-1",
+        // Shape & Initial State
+        "rounded-lg border border-transparent",
+        // Interaction
+        "transition-all hover:bg-muted/40 hover:border-border/60"
+      )}
+    >
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Icon className="w-4 h-4 opacity-70" />
         <span>{label}</span>
       </div>

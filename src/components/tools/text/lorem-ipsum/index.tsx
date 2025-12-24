@@ -61,8 +61,12 @@ export function LoremIpsumGenerator() {
       className={cn(
         // Layout & Grid System (โครงสร้าง)
         "grid gap-6 lg:grid-cols-3 lg:h-[500px]",
-        // Animation & Transition (การเคลื่อนไหว)
-        "transition-all animate-in fade-in duration-500"
+        // Animation Core (ท่าทาง: เริ่มต้น + จางเข้า + ลอยขึ้น)
+        "animate-in fade-in slide-in-from-bottom-4",
+        // Animation Timing (ความเร็วและจังหวะ)
+        "duration-600 ease-out",
+        // Animation Staging (การรอ: รอ 0.2 วินาที ก่อนเริ่มเพื่อให้แม่มาครบก่อน)
+        "delay-200 fill-mode-backwards"
       )}
     >
       {/* ================= LEFT PANEL: SETTINGS ================= */}
@@ -145,13 +149,10 @@ export function LoremIpsumGenerator() {
               className={cn(
                 // Layout & Spacing (การจัดวางและระยะห่าง)
                 "flex items-center justify-between p-3",
-
                 // Shape & Border (รูปร่างและเส้นขอบพื้นฐาน)
                 "rounded-xl border border-border/40",
-
                 // Interactivity (การตอบสนองพื้นฐาน)
                 "cursor-pointer group transition-all",
-
                 // Conditional State (เปลี่ยนสีตามสถานะ Checked/Unchecked)
                 startWithLorem
                   ? "bg-primary/5 border-primary/20" // Active State
@@ -200,8 +201,6 @@ export function LoremIpsumGenerator() {
       </Card>
 
       {/* ================= RIGHT PANEL: OUTPUT ================= */}
-      {/* <Card className="border-border/60 shadow-md flex flex-col overflow-hidden bg-card p-0 transition-all hover:shadow-lg gap-2 sm:gap-4"></Card> */}
-      {/* <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0 transition-all hover:shadow-lg"></Card> */}
       <Card
         className={cn(
           // Grid & Flex Layout (การจัดวางและขนาด)

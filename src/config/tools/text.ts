@@ -4,11 +4,6 @@ import {
   ScrollText, // Lorem Ipsum
   ChartNoAxesCombined, // Word Counter (Stats)
   GitCompare, // Diff Viewer
-  Braces, // JSON
-  Link2, // URL
-  Binary, // Base64
-  NotebookPen, // Markdown
-  Ampersand, // HTML Entity
 } from "lucide-react";
 
 /**
@@ -97,98 +92,5 @@ export const textTools: ToolConfig[] = [
       "text difference",
     ],
     isNew: true,
-  },
-
-  // 5. JSON Formatter
-  {
-    slug: "json-formatter",
-    title: "JSON Formatter",
-    description:
-      "Tame your data. Validate, beautify, and minify complex JSON structures for better readability.",
-    category: "text",
-    icon: Braces, // ปีกกาคือสัญลักษณ์ของ JSON
-    keywords: [
-      "json",
-      "pretty",
-      "beautify",
-      "minify",
-      "parser",
-      "validator",
-      "lint",
-    ],
-    hidden: true, // ซ่อนไว้ก่อนตาม config เดิม
-  },
-
-  // 6. URL Encoder / Decoder
-  {
-    slug: "url-encoder",
-    title: "URL Encoder / Decoder",
-    description:
-      "Web-safe strings made easy. Encode text to URL-safe formats or decode escaped characters instantly.",
-    category: "text",
-    icon: Link2,
-    keywords: [
-      "url",
-      "encode",
-      "decode",
-      "uri",
-      "percent-encoding",
-      "web tools",
-    ],
-    hidden: true,
-  },
-
-  // 7. Base64 Converter
-  {
-    slug: "base64-converter",
-    title: "Base64 Encoder",
-    description:
-      "Data translation tool. Convert text and files to Base64 strings and back for safe data transport.",
-    category: "text",
-    icon: Binary, // สื่อถึงข้อมูลดิบ / binary data
-    keywords: ["base64", "encode", "decode", "binary", "ascii", "encryption"],
-    hidden: true,
-  },
-
-  // 8. Markdown Previewer
-  {
-    slug: "markdown-previewer",
-    title: "Markdown Previewer",
-    description:
-      "Write, preview, publish. A real-time Markdown editor to visualize your documentation instantly.",
-    category: "text",
-    icon: NotebookPen,
-    keywords: [
-      "markdown",
-      "preview",
-      "editor",
-      "md",
-      "readme",
-      "documentation",
-      "writer",
-    ],
-    isNew: true,
-    hidden: true,
-  },
-
-  // 9. HTML Entity
-  {
-    slug: "html-entity",
-    title: "HTML Entity Encoder",
-    description:
-      "Safe characters for web. Escape text into HTML entities or decode them back to readable content.",
-    category: "text",
-    icon: Ampersand, // สัญลักษณ์ & คือหัวใจของ HTML Entities
-    keywords: [
-      "html",
-      "entity",
-      "escape",
-      "unescape",
-      "xml",
-      "special characters",
-      "safe",
-    ],
-    isNew: true,
-    hidden: true,
   },
 ];

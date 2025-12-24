@@ -48,11 +48,31 @@ export function CaseConverter() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-600 ease-out">
+    <div
+      className={cn(
+        // Layout (ระยะห่างระหว่างลูกๆ)
+        "space-y-6",
+        // Animation Core (ท่าทาง: เริ่มต้น + จางเข้า + ลอยขึ้น)
+        "animate-in fade-in slide-in-from-bottom-4",
+        // Animation Timing (ความเร็วและจังหวะ)
+        "duration-600 ease-out",
+        // Animation Staging (การรอ: รอ 0.2 วินาที ก่อนเริ่มเพื่อให้แม่มาครบก่อน)
+        "delay-200 fill-mode-backwards"
+      )}
+    >
       {/* ================= INPUT SECTION ================= */}
       <Card className="border-border/60 shadow-md flex flex-col overflow-hidden bg-card p-0 transition-all hover:shadow-lg gap-2 sm:gap-4">
         {/* Toolbar Header */}
-        <div className="flex flex-col items-center sm:flex-row justify-between px-6 py-4 md:py-2 border-b border-border/60 bg-muted/40 min-h-[60px] gap-4 sm:gap-0">
+        <div
+          className={cn(
+            // Layout & Direction (การจัดวางและทิศทาง)
+            "flex flex-col items-center sm:flex-row justify-between",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4 sm:gap-0",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
           <div className="flex items-center gap-3 ">
             <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               <Type size={16} />
@@ -68,9 +88,9 @@ export function CaseConverter() {
               // Layout & Sizing
               "flex flex-wrap items-center gap-1",
               "w-full sm:w-auto",
-              // Alignment 
-              "justify-center", 
-              "sm:justify-end" 
+              // Alignment
+              "justify-center",
+              "sm:justify-end"
             )}
           >
             <DemoButton onDemo={handleDemo} />

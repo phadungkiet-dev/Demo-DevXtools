@@ -106,7 +106,7 @@ export function CaseConverter() {
         </div>
 
         {/* Text Area with Stats Overlay */}
-        <CardContent className="px-1 py-1 relative min-h-[100px] sm:min-h-[180px] ">
+        <CardContent className="px-1 py-1 relative min-h-[100px] sm:min-h-[180px]">
           <Textarea
             id="input-text"
             className={cn(

@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports ==================
 import { useState, useMemo } from "react";
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,33 +19,24 @@ import {
 import { diffLines, Change } from "diff";
 import { cn } from "@/lib/utils";
 
-// =============================================================================
-// Main Component
-// =============================================================================
+// Main Component ===================
 export function DiffViewer() {
   // --- State Management ---
   const [original, setOriginal] = useState("");
   const [modified, setModified] = useState("");
 
-  /**
-   * 🔄 Derived State: Diff Calculation
-   * ใช้ useMemo เพื่อคำนวณ Diff เฉพาะเมื่อ input เปลี่ยน
-   */
+  // Derived State: Diff Calculation
   const differences: Change[] = useMemo(() => {
     if (!original && !modified) return [];
     return diffLines(original, modified);
   }, [original, modified]);
 
-  /**
-   * 📝 Helper: Generate Raw Diff Text (สำหรับ Copy)
-   */
+  // Derived State: Diff Calculation
   const rawDiffOutput = useMemo(() => {
     return differences.map((part) => part.value).join("");
   }, [differences]);
 
-  /**
-   * 🎮 Handlers
-   */
+  // Handlers
   const handleSwap = () => {
     setOriginal(modified);
     setModified(original);
@@ -56,17 +45,36 @@ export function DiffViewer() {
   const handleClearAll = () => {
     setOriginal("");
     setModified("");
-    // Note: ClearButton จะจัดการ Toast ให้เองถ้าเรียกผ่าน onClear
-    // แต่กรณีนี้เราใช้ ClearButton ตัวเดียวคุม 2 input
   };
 
+  // Render
   return (
     // Grid Layout: Mobile Stack, Desktop 2 Columns
-    <div className="grid gap-6 lg:grid-cols-2 lg:h-[650px] transition-all animate-in fade-in duration-500">
+    <div
+      className={cn(
+        // Layout & Grid System
+        "grid gap-6 lg:grid-cols-2 lg:h-[650px]",
+        // Animation Core
+        "animate-in fade-in slide-in-from-bottom-4",
+        // Animation Timing
+        "duration-600 ease-out",
+        // Animation Staging
+        "delay-200 fill-mode-backwards"
+      )}
+    >
       {/* ================= LEFT COLUMN: INPUTS ================= */}
       <div className="flex flex-col gap-4 h-full min-h-[500px]">
         {/* Input 1: Original */}
-        <Card className="flex flex-col flex-1 overflow-hidden bg-card p-0 border-border/60 shadow-md">
+        <Card
+          className={cn(
+            // Layout
+            "flex flex-col flex-1",
+            // Visuals
+            "bg-card backdrop-blur-sm border-border/60 shadow-md",
+            // Container Style
+            "p-0 overflow-hidden"
+          )}
+        >
           <InputToolbar
             title="Original Text"
             icon={Eye}
@@ -74,9 +82,23 @@ export function DiffViewer() {
             onPaste={setOriginal}
             hasContent={!!original}
           />
-          <CardContent className="p-0 flex-1 relative min-h-[150px]">
+          <CardContent className="px-1 py-1 relative min-h-[150px] lg:min-h-0 flex-1">
             <Textarea
-              className="w-full h-full resize-none border-0 focus-visible:ring-0 p-4 text-sm leading-relaxed font-mono bg-transparent rounded-none placeholder:text-muted-foreground/30"
+              className={cn(
+                // Layout & Sizing
+                "w-full h-full resize-none",
+                // Spacing
+                "p-4 pb-12",
+                // Typography
+                "font-serif text-base leading-relaxed text-foreground/90",
+                // Appearance Reset
+                "border-0 focus-visible:ring-0 bg-transparent rounded-none shadow-none",
+                // Scrollbar & Selection
+                "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+                "selection:bg-primary/20",
+                // Placeholder
+                "placeholder:text-muted-foreground/30"
+              )}
               placeholder="Paste original text here..."
               value={original}
               onChange={(e) => setOriginal(e.target.value)}
@@ -91,7 +113,16 @@ export function DiffViewer() {
         </div>
 
         {/* Input 2: Modified */}
-        <Card className="flex flex-col flex-1 overflow-hidden bg-card p-0 border-border/60 shadow-md">
+        <Card
+          className={cn(
+            // Layout
+            "flex flex-col flex-1",
+            // Visuals
+            "bg-card backdrop-blur-sm border-border/60 shadow-md",
+            // Container Style
+            "p-0 overflow-hidden"
+          )}
+        >
           <InputToolbar
             title="Modified Text"
             icon={PenLine}
@@ -99,9 +130,23 @@ export function DiffViewer() {
             onPaste={setModified}
             hasContent={!!modified}
           />
-          <CardContent className="p-0 flex-1 relative min-h-[150px]">
+          <CardContent className="px-1 py-1 relative min-h-[150px] lg:min-h-0 flex-1">
             <Textarea
-              className="w-full h-full resize-none border-0 focus-visible:ring-0 p-4 text-sm leading-relaxed font-mono bg-transparent rounded-none placeholder:text-muted-foreground/30"
+              className={cn(
+                // Layout & Sizing
+                "w-full h-full resize-none",
+                // Spacing
+                "p-4 pb-12",
+                // Typography
+                "font-serif text-base leading-relaxed text-foreground/90",
+                // Appearance Reset
+                "border-0 focus-visible:ring-0 bg-transparent rounded-none shadow-none",
+                // Scrollbar & Selection
+                "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+                "selection:bg-primary/20",
+                // Placeholder
+                "placeholder:text-muted-foreground/30"
+              )}
               placeholder="Paste modified text here..."
               value={modified}
               onChange={(e) => setModified(e.target.value)}
@@ -112,11 +157,31 @@ export function DiffViewer() {
       </div>
 
       {/* ================= RIGHT COLUMN: DIFF OUTPUT ================= */}
-      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col h-full overflow-hidden bg-card p-0 min-h-[400px]">
+      <Card
+        className={cn(
+          // Grid & Flex Layout
+          "lg:col-span-1 h-full flex flex-col overflow-hidden",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-2 sm-gap-4 min-h-[400px]",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
         {/* Output Toolbar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px]">
+        <div
+          className={cn(
+            // Layout & Direction (การจัดวางและทิศทาง)
+            "flex flex-col sm:flex-row justify-between",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               <FileDiff size={16} />
             </div>
             <span className="text-sm font-semibold text-muted-foreground">
@@ -124,25 +189,32 @@ export function DiffViewer() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* ✅ ใช้ Shared ClearButton สำหรับ "Clear All" */}
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-warp items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-center sm:justify-end"
+            )}
+          >
+            {/* ใช้ Shared ClearButton สำหรับ "Clear All" */}
             <ClearButton
               onClear={handleClearAll}
               disabled={!original && !modified}
-              className="h-8"
             />
 
-            <div className="w-px h-4 bg-border mx-1" />
+            <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
 
             <CopyButton
               text={rawDiffOutput}
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
             />
           </div>
         </div>
 
         {/* Output Content */}
-        <CardContent className="p-0 flex-1 relative overflow-hidden bg-background/50">
+        <CardContent className="px-1 py-1 relative min-h-[300px] lg:min-h-0 flex-1">
           <div className="h-full overflow-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 p-4">
             {/* Empty State */}
             {differences.length === 0 && (
@@ -158,7 +230,7 @@ export function DiffViewer() {
                 <span
                   key={index}
                   className={cn(
-                    "block px-2 py-0.5 rounded-sm transition-colors",
+                    "block px-1 py-0.5 rounded-sm transition-colors",
                     {
                       // Added: Green background
                       "bg-green-500/15 text-green-700 dark:text-green-400 border-l-2 border-green-500/50":
@@ -194,9 +266,7 @@ export function DiffViewer() {
   );
 }
 
-// =============================================================================
-// Helper Component: Input Toolbar
-// =============================================================================
+// Helper Component: Input Toolbar ====================
 interface InputToolbarProps {
   title: string;
   icon: React.ElementType;
@@ -212,21 +282,36 @@ const InputToolbar: React.FC<InputToolbarProps> = ({
   onPaste,
   hasContent,
 }) => (
-  <div className="flex items-center justify-between px-4 py-2 border-b border-border/40 bg-muted/30 min-h-[48px]">
-    <div className="flex items-center gap-2">
-      <Icon size={14} className="text-muted-foreground" />
-      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+  <div
+    className={cn(
+      // Layout & Direction
+      "flex flex-col sm:flex-row justify-between",
+      // Sizing & Spacing
+      "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+      // Visuals
+      "bg-muted/40 border-b border-borer/60"
+    )}
+  >
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
+        <Icon size={16} />
+      </div>
+      <span className="text-sm font-semibold text-muted-foreground">
         {title}
       </span>
     </div>
-    <div className="flex items-center gap-1">
-      {/* ✅ Refactored: ใช้ Shared Components */}
-      <PasteButton onPaste={onPaste} className="h-7 text-[10px]" />
-      <ClearButton
-        onClear={onClear}
-        disabled={!hasContent}
-        className="h-7 text-[10px]"
-      />
+
+    <div
+      className={cn(
+        // Layout & Sizing
+        "flex flex-warp items-center gap-1",
+        "w-full sm:w-auto",
+        // Alignment
+        "justify-center sm:justify-end"
+      )}
+    >
+      <PasteButton onPaste={onPaste} />
+      <ClearButton onClear={onClear} disabled={!hasContent} />
     </div>
   </div>
 );

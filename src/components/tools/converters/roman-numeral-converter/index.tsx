@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports ==================
 import { useState } from "react";
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,9 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import romans from "romans";
 
-// =============================================================================
-// Types
-// =============================================================================
+// Types =================
 type ConversionMode =
   | "Waiting..."
   | "Number → Roman"
@@ -30,9 +26,7 @@ type ConversionMode =
   | "Invalid"
   | "Out of Range";
 
-// =============================================================================
-// Main Component
-// =============================================================================
+// Main Component ===============
 export function RomanNumeralConverter() {
   // --- State Management ---
   const [input, setInput] = useState("");
@@ -41,14 +35,13 @@ export function RomanNumeralConverter() {
 
   // --- Logic ---
 
-  /**
-   * 🧠 Core Logic: Handles input changes and triggers conversion immediately.
-   */
+  // Core Logic: Handles input changes and triggers conversion immediately.
+
   const handleInputChange = (value: string) => {
     setInput(value);
     const cleanInput = value.trim();
 
-    // 1. Empty Case: Reset everything
+    // Empty Case: Reset everything
     if (!cleanInput) {
       setResult("");
       setMode("Waiting...");
@@ -56,7 +49,7 @@ export function RomanNumeralConverter() {
     }
 
     try {
-      // 2. Case: Input is Number (Decimal)
+      // Case: Input is Number (Decimal)
       if (/^\d+$/.test(cleanInput)) {
         const num = parseInt(cleanInput, 10);
 
@@ -71,7 +64,7 @@ export function RomanNumeralConverter() {
           setMode("Number → Roman");
         }
       }
-      // 3. Case: Input is Roman Letters (Checking valid chars)
+      // Case: Input is Roman Letters (Checking valid chars)
       else if (/^[MDCLXVImdclxvi]+$/.test(cleanInput)) {
         try {
           // ใช้ Library romans
@@ -84,7 +77,7 @@ export function RomanNumeralConverter() {
           setMode("Invalid");
         }
       }
-      // 4. Case: Invalid characters
+      // Case: Invalid characters
       else {
         setResult("Invalid format (Use 0-9 or I, V, X, L, C, D, M)");
         setMode("Invalid");
@@ -95,15 +88,47 @@ export function RomanNumeralConverter() {
     }
   };
 
+  // Render
   return (
     // Grid Layout: Mobile Stack, Desktop 2 Columns Fixed Height
-    <div className="grid gap-6 lg:grid-cols-2 lg:h-[550px] transition-all animate-in fade-in duration-500">
+    <div
+      className={cn(
+        // Grid Layout
+        "grid gap-6 lg:grid-cols-2 lg:h-[550px]",
+        // Animation Core
+        "animate-in fade-in slide-in-from-bottom-4",
+        // Animation Timing
+        "duration-600 ease-out",
+        // Animation Staging
+        "delay-200 fill-mode-backwards"
+      )}
+    >
       {/* ================= LEFT PANEL: INPUT ================= */}
-      <Card className="flex flex-col h-[300px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
+      <Card
+        className={cn(
+          // Grid & Flex Layout
+          "h-[350px] flex flex-col overflow-hidden",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 min-h-[60px] shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+        <div
+          className={cn(
+            // Layout & Direction
+            "flex flex-col sm:flex-row justify-between",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               <Type size={16} />
             </div>
             <span className="text-sm font-semibold text-muted-foreground">
@@ -111,8 +136,16 @@ export function RomanNumeralConverter() {
             </span>
           </div>
 
-          <div className="flex items-center gap-1">
-            {/* ✅ ใช้ Shared Buttons แทนการเขียนปุ่มเอง */}
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-warp items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-center sm:justify-end"
+            )}
+          >
+            {/* ใช้ Shared Buttons แทนการเขียนปุ่มเอง */}
             <PasteButton onPaste={handleInputChange} />
             <ClearButton
               onClear={() => handleInputChange("")}
@@ -122,19 +155,43 @@ export function RomanNumeralConverter() {
         </div>
 
         {/* Input Area */}
-        <CardContent className="p-0 flex-1 relative min-h-0">
+        <CardContent className="px-1 py-1 relative min-h-[300px] lg:min-h-0 flex-1">
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-6 text-base md:text-lg leading-relaxed font-mono bg-transparent rounded-none shadow-none text-foreground",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20 placeholder:text-muted-foreground/30"
+              // Layout & Sizing
+              "w-full h-full resize-none",
+              // Spacing
+              "p-4 pb-12",
+              // Typography
+              "font-mono text-base md:text-lg leading-relaxed text-foreground/90",
+              // Appearance Reset
+              "border-0 focus-visible:ring-0 bg-transparent rounded-none shadow-none",
+              // Scrollbar & Selection
+              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+              "selection:bg-primary/20",
+              // Placeholder
+              "placeholder:text-muted-foreground/30"
             )}
             value={input}
             onChange={(e) => handleInputChange(e.target.value)}
-            placeholder="Type number (2024) or Roman (MMXXIV)..."
+            placeholder="Type number (1234) or Roman (MCCXXXIV)..."
             spellCheck={false}
           />
           {/* Hint Overlay */}
-          <div className="absolute bottom-4 right-4 flex items-center gap-2 text-[10px] text-muted-foreground/60 bg-background/80 px-2 py-1 rounded-md border border-border/20 backdrop-blur-sm pointer-events-none select-none">
+          <div
+            className={cn(
+              // Positioning
+              "absolute bottom-2 right-2",
+              // Layout & Spacing
+              "flex items-center gap-1 px-1 py-1",
+              // Visuals
+              "border border-border/20 rounded-xl bg-background/80 backdrop-blur-sm",
+              // Typography
+              "text-[10px] text-muted-foreground/80",
+              // Interaction
+              "pointer-events-none select-none"
+            )}
+          >
             <Info size={12} />
             <span>Auto-detects format</span>
           </div>
@@ -142,11 +199,31 @@ export function RomanNumeralConverter() {
       </Card>
 
       {/* ================= RIGHT PANEL: OUTPUT ================= */}
-      <Card className="flex flex-col h-[300px] lg:h-full overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
+      <Card
+        className={cn(
+          // Grid & Flex Layout
+          "h-[350px] flex flex-col overflow-hidden",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 min-h-[60px] shrink-0">
+        <div
+          className={cn(
+            // Layout & Direction
+            "flex flex-col sm:flex-row justify-between",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               <ArrowRightLeft size={16} />
             </div>
             <div className="flex flex-col">
@@ -154,7 +231,7 @@ export function RomanNumeralConverter() {
                 Result
               </span>
               {mode !== "Waiting..." && mode !== "Invalid" && (
-                <span className="text-[10px] text-primary font-medium animate-in fade-in slide-in-from-left-1">
+                <span className="text-[10px] text-muted-foreground/90 font-medium animate-in fade-in slide-in-from-left-1 duration-500">
                   {mode}
                 </span>
               )}
@@ -165,26 +242,43 @@ export function RomanNumeralConverter() {
             <DownloadButton
               text={result}
               filename="roman-conversion"
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              extension="txt"
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
             />
             <CopyButton
               text={result}
-              className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
             />
           </div>
         </div>
 
         {/* Result Display */}
-        <CardContent className="p-0 flex-1 relative bg-muted/10 min-h-0 flex flex-col items-center justify-center text-center">
+        <CardContent
+          className={cn(
+            // Layout & Positioning (Flexbox และตำแหน่ง)
+            "relative flex flex-col items-center flex-1 justify-center text-center",
+            // Sizing
+            "min-h-[300px] lg:min-h-0",
+            // Spacing (ใช้ p-0 เพื่อให้เนื้อหาชนขอบสวยงาม)
+            "px-1 py-1",
+            // Visuals (สีพื้นหลังจางๆ)
+            "bg-muted/10"
+          )}
+        >
           {result ? (
             <div className="w-full px-8 space-y-4 animate-in zoom-in-95 duration-200">
               <span
                 className={cn(
-                  "block font-bold tracking-tight break-all leading-tight transition-colors duration-300",
+                  // Layout
+                  "block",
+                  // Typography
+                  "font-bold tracking-tight leading-tight break-all",
+                  // Animation
+                  "transition-colors duration-300",
                   // Conditional Styling based on Error/Success
                   mode === "Invalid" || mode === "Out of Range"
                     ? "text-destructive text-xl md:text-2xl"
-                    : "text-foreground text-5xl md:text-7xl"
+                    : "text-foreground text-4xl md:text-7xl"
                 )}
               >
                 {/* Show Alert Icon if Error */}
@@ -196,7 +290,18 @@ export function RomanNumeralConverter() {
 
               {/* Status Badge */}
               {mode !== "Invalid" && mode !== "Out of Range" && (
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                <div
+                  className={cn(
+                    // Layout & Alignment
+                    "inline-flex items-center gap-2",
+                    // Spacing
+                    "px-2.5 py-1",
+                    // Shape & Background
+                    "rounded-full bg-primary/10",
+                    // Typography
+                    "text-xs font-medium text-primary"
+                  )}
+                >
                   <Hash size={12} />
                   {mode === "Number → Roman"
                     ? "Roman Numeral"
@@ -206,7 +311,18 @@ export function RomanNumeralConverter() {
             </div>
           ) : (
             // Empty State
-            <div className="text-muted-foreground/30 flex flex-col items-center gap-4 select-none animate-in fade-in duration-500">
+            <div
+              className={cn(
+                // Layout
+                "flex flex-col items-center gap-4",
+                // Visuals
+                "text-muted-foreground/30",
+                // UX
+                "select-none",
+                // Animation
+                "animate-in fade-in duration-500"
+              )}
+            >
               <div className="p-4 rounded-full bg-muted/20">
                 <Hash size={48} strokeWidth={1.5} />
               </div>

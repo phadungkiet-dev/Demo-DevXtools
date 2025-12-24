@@ -69,6 +69,7 @@ export function WordCounter() {
     // <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all animate-in fade-in duration-500"></div>
     <div
       className={cn(
+        // Grid Layout
         "grid gap-6 lg:grid-cols-3 lg:h-[580]",
         // Animation Core (ท่าทาง: เริ่มต้น + จางเข้า + ลอยขึ้น)
         "animate-in fade-in slide-in-from-bottom-4",
@@ -94,7 +95,7 @@ export function WordCounter() {
         {/* Toolbar */}
         <div
           className={cn(
-            // Layout & Direction (การจัดวางและทิศทาง)
+            // Layout & Direction
             "flex flex-col sm:flex-row justify-between",
             // Sizing & Spacing
             "min-h-[60px] px-6 py-4 md:py-2 gap-4",

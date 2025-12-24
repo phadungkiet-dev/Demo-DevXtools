@@ -1,31 +1,23 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports ==============
 import { useState, useEffect } from "react";
 import { ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// =============================================================================
-// Types
-// =============================================================================
+// Types =================
 interface SwapButtonProps {
   /** ฟังก์ชันสลับข้อมูลของ Parent Component */
   onSwap: () => void;
-
   /** Class เพิ่มเติม */
   className?: string;
-
   /** Disabled state */
   disabled?: boolean;
 }
 
-// =============================================================================
-// Component
-// =============================================================================
+// Component ==============
 export function SwapButton({ onSwap, className, disabled }: SwapButtonProps) {
   // State สำหรับ Animation หมุนปุ่ม
   const [isSwapping, setIsSwapping] = useState(false);
@@ -41,7 +33,7 @@ export function SwapButton({ onSwap, className, disabled }: SwapButtonProps) {
     onSwap();
     setIsSwapping(true);
 
-    // ✅ Toast: Minimal Style (พื้นหลังขาว + Icon ฟ้า)
+    // Toast: Minimal Style (พื้นหลังขาว + Icon ฟ้า)
     toast("Values swapped", {
       icon: <ArrowRightLeft className="h-4 w-4 text-blue-500" />,
     });

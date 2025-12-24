@@ -71,7 +71,7 @@ export function convertUnitValue(
   category: CategoryType,
   baseSize: number = 16
 ): number {
-  // A. Temperature
+  // Temperature
   if (category === "temperature") {
     if (fromUnit === toUnit) return value;
     if (fromUnit === "c" && toUnit === "f") return (value * 9) / 5 + 32;
@@ -85,7 +85,7 @@ export function convertUnitValue(
     return value;
   }
 
-  // B. Typography
+  // Typography
   if (category === "typography") {
     // Step 1: Normalize to PX
     let valInPx = value;
@@ -99,7 +99,7 @@ export function convertUnitValue(
     return valInPx;
   }
 
-  // C. Linear (Length, Weight)
+  // Linear (Length, Weight)
   const units = UNIT_CATEGORIES[category].units;
   const fromRatio = units.find((u) => u.id === fromUnit)?.ratio || 1;
   const toRatio = units.find((u) => u.id === toUnit)?.ratio || 1;

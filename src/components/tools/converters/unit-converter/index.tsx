@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports ===============
 import { useState, useEffect } from "react";
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+// Icon
+import { RulerDimensionLine } from "lucide-react";
 
 // Shared Components
 import {
@@ -29,10 +30,9 @@ import {
   CategoryType,
   convertUnitValue,
 } from "@/lib/unit-converter";
+import { cn } from "@/lib/utils";
 
-// =============================================================================
-// Main Component
-// =============================================================================
+// Main Component =========================
 export function UnitConverter() {
   // --- State Management ---
   const [category, setCategory] = useState<CategoryType>("length");
@@ -42,7 +42,6 @@ export function UnitConverter() {
   const [outputValue, setOutputValue] = useState<string>("");
 
   // --- Handlers ---
-
   const handleCategoryChange = (newCategory: CategoryType) => {
     setCategory(newCategory);
     const units = UNIT_CATEGORIES[newCategory].units;
@@ -73,15 +72,47 @@ export function UnitConverter() {
     return () => clearTimeout(timer);
   }, [inputValue, fromUnit, toUnit, category]);
 
+  // Render
   return (
-    // ✅ Main Layout: Flex Container
-    <div className="flex flex-col lg:flex-row items-stretch lg:h-[550px] gap-4 transition-all animate-in fade-in duration-500">
-      {/* ================= 1. LEFT CARD (INPUT) ================= */}
-      <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md">
+    <div
+      className={cn(
+        // Layout
+        "flex flex-col lg:flex-row items-stretch lg:h-[550px] gap-6",
+        // Animation Core
+        "animate-in fade-in slide-in-from-bottom-4",
+        // Animation Timing
+        "duration-600 ease-out",
+        // Animation Staging
+        "delay-200 fill-mode-backwards"
+      )}
+    >
+      {/* ================= LEFT CARD (INPUT) ================= */}
+      <Card
+        className={cn(
+          // Grid & Flex Layout
+          "flex-1 flex flex-col overflow-hidden",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px] gap-4">
+        <div
+          className={cn(
+            // Layout & Direction
+            "flex flex-col sm:flex-row justify-between items-center",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary shrink-0">
+            {/* p-2 bg-primary/10 rounded-md text-primary shadow-sm */}
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               {(() => {
                 const Icon = UNIT_CATEGORIES[category].icon;
                 return <Icon size={16} />;
@@ -91,7 +122,7 @@ export function UnitConverter() {
               value={category}
               onValueChange={(v) => handleCategoryChange(v as CategoryType)}
             >
-              <SelectTrigger className="h-8 min-w-[140px] bg-background text-xs font-medium border-border/60 focus:ring-offset-0">
+              <SelectTrigger className="w-full h-10 bg-background/50 border-border/60 focus:ring-primary/20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -103,7 +134,7 @@ export function UnitConverter() {
                 ).map(([key, conf]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
-                      <conf.icon className="w-3.5 h-3.5 opacity-70" />
+                      <conf.icon className="w-3 h-3 opacity-70" />
                       {conf.label}
                     </div>
                   </SelectItem>
@@ -111,7 +142,15 @@ export function UnitConverter() {
               </SelectContent>
             </Select>
           </div>
-          <div className="self-end sm:self-auto">
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-warp items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-center sm:justify-end"
+            )}
+          >
             <ClearButton
               onClear={() => setInputValue("")}
               disabled={!inputValue}
@@ -120,13 +159,13 @@ export function UnitConverter() {
         </div>
 
         {/* Input Content */}
-        <CardContent className="p-6 flex-1 flex flex-col gap-6">
+        <CardContent className="p-4 flex flex-col h-full gap-6">
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground uppercase font-bold">
+            <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
               From Unit
             </Label>
             <Select value={fromUnit} onValueChange={setFromUnit}>
-              <SelectTrigger className="w-full h-10">
+              <SelectTrigger className="w-full h-10 bg-background/50 border-border/60 focus:ring-primary/20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -139,7 +178,7 @@ export function UnitConverter() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground uppercase font-bold">
+            <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
               Value
             </Label>
             <Input
@@ -153,8 +192,8 @@ export function UnitConverter() {
         </CardContent>
       </Card>
 
-      {/* ================= 2. MIDDLE (SWAP BUTTON) ================= */}
-      {/* ✅ Flex Center Item: วางอยู่ตรงกลางระหว่างการ์ดซ้ายขวา */}
+      {/* ================= MIDDLE (SWAP BUTTON) ================= */}
+      {/* Flex Center Item: วางอยู่ตรงกลางระหว่างการ์ดซ้ายขวา */}
       <div className="flex items-center justify-center shrink-0">
         <SwapButton
           onSwap={handleSwap}
@@ -162,24 +201,63 @@ export function UnitConverter() {
         />
       </div>
 
-      {/* ================= 3. RIGHT CARD (OUTPUT) ================= */}
-      <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md">
+      {/* ================= RIGHT CARD (OUTPUT) ================= */}
+      <Card
+        className={cn(
+          // Grid & Flex Layout
+          "flex-1 flex flex-col overflow-hidden",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
         {/* Toolbar */}
-        <div className="flex items-center justify-end px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[60px]">
-          <CopyButton
-            text={outputValue}
-            className="h-8 w-8 hover:bg-background hover:text-primary transition-colors"
-          />
+        <div
+          className={cn(
+            // Layout & Direction
+            "flex flex-col sm:flex-row justify-between",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
+              <RulerDimensionLine size={16} />
+            </div>
+            <span className="text-sm font-semibold text-muted-foreground">
+              Result
+            </span>
+          </div>
+
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-warp items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-center sm:justify-end"
+            )}
+          >
+            <CopyButton
+              text={outputValue}
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            />
+          </div>
         </div>
 
         {/* Output Content */}
-        <CardContent className="p-6 flex-1 flex flex-col gap-6 bg-muted/10">
+        <CardContent className="p-4 flex flex-col h-full gap-6">
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground uppercase font-bold">
+            <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
               To Unit
             </Label>
             <Select value={toUnit} onValueChange={setToUnit}>
-              <SelectTrigger className="w-full h-10">
+              <SelectTrigger className="w-full h-10 bg-background/50 border-border/60 focus:ring-primary/20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -193,10 +271,21 @@ export function UnitConverter() {
           </div>
 
           <div className="space-y-2 flex-1 flex flex-col">
-            <Label className="text-xs text-muted-foreground uppercase font-bold">
+            <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
               Result
             </Label>
-            <div className="flex-1 flex items-center justify-center min-h-[120px] rounded-lg border border-border bg-background p-4 relative group transition-colors">
+            <div
+              className={cn(
+                // Layout & Positioning
+                "relative flex flex-1 items-center justify-center",
+                // Sizing & Spacing
+                "min-h-[120px] p-4",
+                // Visuals
+                "bg-background border border-border rounded-lg",
+                // Interaction
+                "group transition-colors"
+              )}
+            >
               {outputValue ? (
                 <span className="text-4xl md:text-5xl font-bold tracking-tight text-primary break-all animate-in zoom-in-95 duration-200">
                   {outputValue}

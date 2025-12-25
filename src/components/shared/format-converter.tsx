@@ -259,7 +259,7 @@ export function FormatConverter({
           )}
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 flex items-center justify-center bg-primary/10 rounded-md text-primary shadow-sm">
+            <div className="h-8 w-14 flex items-center justify-center bg-primary/10 rounded-md text-primary shadow-sm">
               <span className="text-[10px] font-bold uppercase">To</span>
             </div>
 

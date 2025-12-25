@@ -7,7 +7,7 @@ export const convertersRegistry: Record<string, ComponentType> = {
       (mod) => mod.NumberBaseConverter
     )
   ),
-  "unit-converter": dynamic(() =>
+  "universal-unit-converter": dynamic(() =>
     import("@/components/tools/converters/unit-converter").then(
       (mod) => mod.UnitConverter
     )

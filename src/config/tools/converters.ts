@@ -2,7 +2,7 @@ import { ToolConfig } from "@/config/tools";
 // Import Icons: เลือกไอคอนที่สื่อความหมายชัดเจนและดู Modern
 import {
   Binary, // Number Base
-  Ruler, // Unit Converter (PX/REM)
+  ArrowLeftRight, // Unit Converter (PX/REM)
   FileJson, // JSON
   Settings2, // YAML (สื่อถึง Config)
   Code2, // XML
@@ -55,21 +55,31 @@ export const convertersTools: ToolConfig[] = [
 
   // --- 2. Web & Design Units ---
   {
-    slug: "unit-converter",
-    title: "PX to REM Converter",
+    slug: "universal-unit-converter",
+    title: "Universal Unit Converter",
     // Description: เน้นเรื่อง Responsive Design
     description:
-      "Pixel-perfect scaling. Calculate PX to REM values based on your root font-size for responsive typography.",
+      "The all-in-one conversion tool. Instantly convert values across Web Typography (PX/REM), Length, Weight, and Temperature with precision.",
     category: "converters",
-    icon: Ruler, // ไม้บรรทัด สื่อถึงการวัดขนาดที่แม่นยำ
+    icon: ArrowLeftRight, // ไม้บรรทัด สื่อถึงการวัดขนาดที่แม่นยำ
     keywords: [
-      "px",
-      "rem",
-      "em",
-      "css",
-      "responsive",
-      "typography",
+      "unit converter",
       "calculator",
+      // Typography
+      "px to rem",
+      "typography",
+      "css units",
+      // Physical
+      "length",
+      "weight",
+      "temperature",
+      // Specific Units (เผื่อคนค้นหาเจาะจง)
+      "celsius",
+      "fahrenheit",
+      "kilogram",
+      "pound",
+      "inch",
+      "feet",
     ],
   },
   {

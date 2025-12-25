@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports ================
 import { useState, useEffect } from "react";
 
 // UI Components
@@ -29,14 +27,11 @@ import {
 } from "@/components/shared/buttons";
 
 // Logic & Utils
-// ✅ Import DataFormat มาใช้เพื่อ Type Safety
+// Import DataFormat
 import { convertData, type DataFormat } from "@/lib/converters";
 import { cn } from "@/lib/utils";
 
-// =============================================================================
-// Constants & Types
-// =============================================================================
-// ✅ ตัด typescript ออก เหลือแค่ 4 format
+// Constants & Types ===============
 const SUPPORTED_FORMATS: DataFormat[] = ["json", "yaml", "xml", "csv"];
 
 interface FormatConverterProps {
@@ -45,9 +40,7 @@ interface FormatConverterProps {
   fixedInput?: boolean;
 }
 
-// =============================================================================
-// Main Component
-// =============================================================================
+// Main Component ================
 export function FormatConverter({
   defaultInput,
   defaultOutput,
@@ -58,7 +51,7 @@ export function FormatConverter({
   const [output, setOutput] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Generic Type Enforcement
+  // Generic Type Enforcement
   const [inputFormat, setInputFormat] = useState<DataFormat>(defaultInput);
   const [outputFormat, setOutputFormat] = useState<DataFormat>(defaultOutput);
 
@@ -107,19 +100,50 @@ export function FormatConverter({
     return () => clearTimeout(timer);
   }, [input, inputFormat, outputFormat]);
 
-  // --- Render ---
+  // Render
   return (
-    <div className="flex flex-col lg:flex-row items-stretch lg:h-[600px] gap-4 transition-all duration-300">
+    <div
+      className={cn(
+        // Layout
+        "flex flex-col lg:flex-row items-stretch lg:h-[550px] gap-6",
+        // // Animation Core
+        "animate-in fade-in slide-in-from-bottom-4",
+        // Animation Timing
+        "duration-600 ease-out",
+        // Animation Staging
+        "delay-200 fill-mode-backwards"
+      )}
+    >
       {/* LEFT CARD (INPUT) */}
-      <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 gap-3 min-h-[60px] shrink-0">
-          <div className="flex items-center gap-2">
+      <Card
+        className={cn(
+          // Flex Layout
+          "flex-1 flex flex-col overflow-hidden",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
+        <div
+          className={cn(
+            // Layout & Direction
+            "flex flex-col sm:flex-row justify-between items-center",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
+          <div className="flex items-center gap-3">
             <div
               className={cn(
-                "p-1.5 rounded-md shadow-sm transition-colors",
+                "p-2 rounded-md shadow-sm transition-colors",
                 fixedInput
-                  ? "bg-muted text-muted-foreground"
-                  : "bg-primary/10 text-primary"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground"
               )}
             >
               {fixedInput ? <Lock size={16} /> : <Code2 size={16} />}
@@ -132,7 +156,7 @@ export function FormatConverter({
             >
               <SelectTrigger
                 className={cn(
-                  "h-8 w-[100px] text-xs font-medium border-border/60 shadow-sm",
+                  "w-full h-10 border-border/60 focus:ring-primary/20",
                   fixedInput ? "cursor-not-allowed bg-muted" : "bg-background"
                 )}
               >
@@ -148,18 +172,38 @@ export function FormatConverter({
             </Select>
           </div>
 
-          <div className="flex items-center gap-1 self-end sm:self-auto">
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-warp items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-center sm:justify-end"
+            )}
+          >
             <PasteButton onPaste={setInput} />
             <ClearButton onClear={() => setInput("")} disabled={!input} />
           </div>
         </div>
 
-        <CardContent className="p-0 flex-1 relative min-h-[200px] group">
+        {/* px-1 py-1 relative min-h-[300px] lg:min-h-0 flex-1 */}
+        {/* p-0 flex-1 relative min-h-[200px] group */}
+        <CardContent className="p-1 relative min-h-[200px] group">
           <Textarea
             className={cn(
-              "w-full h-full resize-none border-0 focus-visible:ring-0 p-4 text-sm font-mono leading-relaxed bg-transparent rounded-none shadow-none text-foreground/90",
+              // Layout & Sizing
+              "w-full h-full resize-none",
+              // Spacing
+              "p-4 pb-12",
+              // Typography
+              "font-serif text-base leading-relaxed text-foreground/90",
+              // Appearance Reset
+              "border-0 focus-visible:ring-0 bg-transparent rounded-none shadow-none",
+              // Scrollbar & Selection
               "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
-              "placeholder:text-muted-foreground/40"
+              "selection:bg-primary/20",
+              // Placeholder
+              "placeholder:text-muted-foreground/30"
             )}
             placeholder={`Paste your ${inputFormat.toUpperCase()} here...`}
             value={input}
@@ -170,31 +214,60 @@ export function FormatConverter({
       </Card>
 
       {/* MIDDLE (SWAP) */}
-      <div className="flex items-center justify-center shrink-0 -my-2 lg:my-0 relative z-10">
+      {/* flex items-center justify-center shrink-0 -my-2 lg:my-0 relative z-10 */}
+      <div className="flex items-center justify-center shrink-0">
         {fixedInput ? (
-          <div className="bg-muted text-muted-foreground p-2 rounded-full border border-border/50 shadow-sm rotate-90 lg:rotate-0">
-            <ArrowRight size={16} />
+          <div
+            className={cn(
+              "flex h-10 w-10 items-center justify-center ",
+              "border border-border/50 shadow-sm",
+              "bg-muted rounded-full text-muted-foreground",
+              "rotate-90 lg:rotate-0"
+            )}
+          >
+            <ArrowRight size={14} />
           </div>
         ) : (
           <SwapButton
             onSwap={handleSwap}
-            className="h-10 w-10 border shadow-md bg-background hover:bg-muted text-primary hover:text-primary transition-transform hover:scale-105 active:scale-95"
+            className="h-10 w-10 border shadow-md bg-background hover:bg-muted text-primary"
           />
         )}
       </div>
 
       {/* RIGHT CARD (OUTPUT) */}
-      <Card className="flex-1 flex flex-col overflow-hidden bg-card p-0 border-border/60 shadow-md hover:shadow-lg transition-shadow">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30 gap-3 min-h-[60px] shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold text-muted-foreground/70 uppercase tracking-widest mr-1">
-              To
-            </span>
+      <Card
+        className={cn(
+          // Flex Layout
+          "flex-1 flex flex-col overflow-hidden",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
+        <div
+          className={cn(
+            // Layout & Direction
+            "flex flex-col sm:flex-row justify-between items-center",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 flex items-center justify-center bg-primary/10 rounded-md text-primary shadow-sm">
+              <span className="text-[10px] font-bold uppercase">To</span>
+            </div>
+
             <Select
               value={outputFormat}
               onValueChange={(v) => setOutputFormat(v as DataFormat)}
             >
-              <SelectTrigger className="h-8 w-[100px] bg-background text-xs font-medium border-primary/30 focus:ring-primary/20 shadow-sm">
+              <SelectTrigger className="w-full h-10 bg-background/50 border-primary/10 focus:ring-primary/20 ">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -207,46 +280,86 @@ export function FormatConverter({
             </Select>
           </div>
 
-          <div className="flex items-center gap-1 self-end sm:self-auto">
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-warp items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-center sm:justify-end"
+            )}
+          >
             <DownloadButton
               text={output}
               filename={`converted.${outputFormat}`}
               extension={outputFormat}
               disabled={!output || !!error}
-              className="h-8 w-8"
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
             />
             <CopyButton
               text={output}
               disabled={!output || !!error}
-              className="h-8 w-8"
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
             />
           </div>
         </div>
 
-        <CardContent className="p-0 flex-1 relative bg-muted/10 min-h-[200px] flex flex-col">
+        <CardContent className="p-1 flex-1 flex flex-col relative min-h-[200px]">
           {error ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-destructive/80 gap-3 animate-in fade-in zoom-in-95 duration-300">
+            <div
+              className={cn(
+                // Layout & Positioning
+                "flex flex-1 flex-col items-center justify-center",
+                // Spacing
+                "p-6 gap-3",
+                // Typography & Color
+                "text-destructive/80",
+                // Animation
+                "animate-in fade-in zoom-in-95 duration-300"
+              )}
+            >
               <div className="p-3 bg-destructive/10 rounded-full ring-1 ring-destructive/20">
-                <AlertCircle size={32} strokeWidth={1.5} />
+                <AlertCircle size={32} strokeWidth={2} />
               </div>
               <div className="text-center space-y-1">
                 <p className="font-semibold text-sm">Conversion Failed</p>
-                <p className="text-xs opacity-80 font-mono max-w-[280px] break-words bg-background/50 px-3 py-1.5 rounded border border-destructive/20">
+                <p
+                  className={cn(
+                    // Layout & Sizing
+                    "max-w-[280px]",
+                    // Spacing
+                    "px-3 py-2",
+                    // Typography
+                    "font-mono text-xs break-words opacity-80",
+                    // Visuals
+                    "bg-background/50 rounded border border-destructive/20"
+                  )}
+                >
                   {error}
                 </p>
               </div>
             </div>
           ) : !output ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/40 gap-3">
-              <FileJson size={48} strokeWidth={1} className="opacity-20" />
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/60 gap-3">
+              <FileJson size={48} strokeWidth={1} className="opacity-40" />
               <p className="text-sm font-medium">Result will appear here...</p>
             </div>
           ) : (
             <Textarea
               className={cn(
-                "w-full h-full resize-none border-0 focus-visible:ring-0 p-4 text-sm font-mono leading-relaxed bg-transparent rounded-none shadow-none",
-                "text-muted-foreground focus:text-foreground transition-colors",
-                "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
+                // Layout & Sizing
+                "w-full h-full resize-none",
+                // Spacing
+                "p-4 pb-12",
+                // Typography
+                "font-serif text-base leading-relaxed text-foreground/90",
+                // Appearance Reset
+                "border-0 focus-visible:ring-0 bg-transparent rounded-none shadow-none",
+                // Scrollbar & Selection
+                "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+                "selection:bg-primary/20",
+                // Placeholder
+                "placeholder:text-muted-foreground/30"
               )}
               value={output}
               readOnly

@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports ======================
 import { useState, useCallback } from "react";
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,12 +17,9 @@ import cmykPlugin from "colord/plugins/cmyk";
 import namesPlugin from "colord/plugins/names";
 import a11yPlugin from "colord/plugins/a11y";
 
-// ✅ Extend Plugins
 extend([cmykPlugin, namesPlugin, a11yPlugin]);
 
-// =============================================================================
-// Main Component
-// =============================================================================
+// Main Component ===============
 export function ColorFormatConverter() {
   // --- State Management ---
   const [hex, setHex] = useState("#3B82F6");
@@ -35,9 +30,7 @@ export function ColorFormatConverter() {
   const [previewColor, setPreviewColor] = useState<Colord>(colord("#3B82F6"));
   const [colorName, setColorName] = useState("Blue Ribbon");
 
-  /**
-   * 🟢 Centralized Update Function
-   */
+  // Centralized Update Function
   const syncColors = useCallback((colorObj: Colord, sourceFormat?: string) => {
     if (!colorObj.isValid()) return;
 
@@ -50,9 +43,7 @@ export function ColorFormatConverter() {
     if (sourceFormat !== "cmyk") setCmyk(colorObj.toCmykString());
   }, []);
 
-  /**
-   * 🎨 Handlers
-   */
+  // Handlers
   const handleInputChange = (
     value: string,
     format: "hex" | "rgb" | "hsl" | "cmyk"
@@ -102,39 +93,81 @@ export function ColorFormatConverter() {
     ? "border-slate-900/20"
     : "border-white/20";
 
+  // Render
   return (
-    <div className="grid gap-6 lg:grid-cols-3 lg:h-[600px] transition-all duration-300 ease-in-out">
+    <div
+      className={cn(
+        // Layout
+        "grid gap-6 lg:grid-cols-3 lg:min-h-[600px]",
+        //   // Animation Core
+        "animate-in fade-in slide-in-from-bottom-4",
+        // Animation Timing
+        "duration-600 ease-out",
+        // Animation Staging
+        "delay-200 fill-mode-backwards"
+      )}
+    >
       {/* ================= LEFT PANEL: PREVIEW ================= */}
-      <Card className="lg:col-span-1 border-border/60 shadow-md flex flex-col min-h-[300px] lg:h-full overflow-hidden bg-card p-0 relative group">
+      <Card
+        className={cn(
+          // Grid & Flex Layout
+          "lg:col-span-1 h-full flex flex-col overflow-hidden min-h-[300px] relative group",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-0",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
         {/* Header Toolbar */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border/40 bg-muted/30 min-h-[56px] absolute top-0 w-full z-10 backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
+        <div
+          className={cn(
+            // Layout & Direction
+            "flex flex-row justify-between items-center",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
               <Palette size={16} />
             </div>
-            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <span className="text-sm font-semibold text-muted-foreground">
               Preview
             </span>
           </div>
 
-          {/* ✅ ใช้ RegenerateButton แบบ Icon Only */}
-          <RegenerateButton
-            onRegenerate={handleRandomColor}
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
-          />
+          <div
+            className={cn(
+              // Layout & Sizing
+              "flex flex-wrap items-center gap-1",
+              "w-full sm:w-auto",
+              // Alignment
+              "justify-end"
+            )}
+          >
+            {/* ใช้ RegenerateButton แบบ Icon Only */}
+            <RegenerateButton
+              onRegenerate={handleRandomColor}
+              size="icon"
+              className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            />
+          </div>
         </div>
 
-        <CardContent className="p-0 flex-1 relative flex flex-col pt-[56px]">
+        <CardContent className="p-0 flex flex-col flex-1 relative">
           {/* Main Color Block */}
           <div
-            className="flex-1 w-full relative transition-colors duration-200 ease-linear"
+            className="flex-1 w-full relative transition-colors duration-300 ease-linear"
             style={{ backgroundColor: previewColor.toHex() }}
           >
             {/* Color Info Overlay */}
             <div
               className={cn(
-                "absolute bottom-6 left-6 right-6 flex flex-col gap-1 z-20 pointer-events-none",
+                "absolute bottom-6 left-6 flex flex-col gap-1 pointer-events-none",
                 textColor
               )}
             >
@@ -144,7 +177,7 @@ export function ColorFormatConverter() {
               <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight capitalize drop-shadow-sm">
                 {colorName}
               </h3>
-
+              {/* flex items-center gap-2 mt-2 */}
               <div className="flex items-center gap-2 mt-2">
                 <BadgeInfo
                   text={previewColor.isLight() ? "Light" : "Dark"}
@@ -161,20 +194,42 @@ export function ColorFormatConverter() {
       </Card>
 
       {/* ================= RIGHT PANEL: CONVERTERS ================= */}
-      <Card className="lg:col-span-2 border-border/60 shadow-md flex flex-col h-full bg-card/50 backdrop-blur-sm p-0">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-border/40 bg-muted/30 min-h-[56px]">
-          <div className="p-1.5 bg-primary/10 rounded-md text-primary shadow-sm">
-            <Logs size={16} />
+      <Card
+        className={cn(
+          // Grid & Flex Layout
+          "lg:col-span-2 h-full flex flex-col relative group",
+          // Visuals
+          "bg-card border-border/60 shadow-md",
+          // Spacing
+          "p-0 gap-2 sm:gap-4",
+          // Animation & Interaction
+          "transition-all hover:shadow-lg"
+        )}
+      >
+        <div
+          className={cn(
+            // Layout & Direction
+            "flex flex-row justify-between items-center",
+            // Sizing & Spacing
+            "min-h-[60px] px-6 py-4 md:py-2 gap-4",
+            // Visuals
+            "bg-muted/40 border-b border-border/60"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-md text-primary shadow-sm">
+              <Logs size={16} />
+            </div>
+            <span className="text-sm font-semibold text-muted-foreground">
+              Format Converters
+            </span>
           </div>
-          <span className="text-sm font-semibold text-muted-foreground">
-            Format Converters
-          </span>
         </div>
 
-        <CardContent className="p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+        <CardContent className="flex flex-col h-full p-4 gap-6 overflow-y-auto custom-scrollbar">
           {/* Color Picker UI */}
           <div className="space-y-2">
-            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+            <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
               Pick a Color
             </Label>
             <ColorPicker
@@ -183,7 +238,7 @@ export function ColorFormatConverter() {
             />
           </div>
 
-          <div className="h-px w-full bg-border/40" />
+          <div className="h-px w-full bg-border/60" />
 
           {/* Input Groups */}
           <div className="space-y-4">
@@ -218,8 +273,8 @@ export function ColorFormatConverter() {
           </div>
 
           {/* CSS Example Section */}
-          <div className="mt-auto pt-6 border-t border-border/40">
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-3 flex items-center gap-2">
+          <div className="mt-auto pt-6 border-t border-border/60">
+            <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2 mb-3">
               <Info size={12} />
               CSS Usage Example
             </Label>
@@ -237,8 +292,8 @@ export function ColorFormatConverter() {
               </pre>
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <CopyButton
-                  text={`color: ${hex}; background-color: ${rgb};`}
-                  className="h-7 w-7"
+                  text={`.custom-color { color: ${hex}; background-color: ${rgb}; }`}
+                  className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10"
                 />
               </div>
             </div>
@@ -249,10 +304,7 @@ export function ColorFormatConverter() {
   );
 }
 
-// =============================================================================
-// Helper Components (Sub-components)
-// =============================================================================
-
+// Helper Components (Sub-components) =================
 function BadgeInfo({
   text,
   borderColor,
@@ -263,7 +315,7 @@ function BadgeInfo({
   return (
     <span
       className={cn(
-        "px-2 py-0.5 rounded text-[10px] font-bold border backdrop-blur-md bg-white/10",
+        "px-2 py-1 rounded text-[10px] font-bold border backdrop-blur-md bg-white/10",
         borderColor
       )}
     >
@@ -290,22 +342,32 @@ function ColorInputRow({
   return (
     <div className="space-y-2 group">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wide group-focus-within:text-primary transition-colors">
+        <Label className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-2">
           {label}
         </Label>
-        <div className="w-1.5 h-1.5 rounded-full bg-primary/20 group-focus-within:bg-primary transition-colors" />
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <Input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="font-mono text-sm h-10 border-border/60 focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all bg-background/50"
+          className={cn(
+            // Layout & Sizing
+            "h-10 px-3",
+            // Typography
+            "font-mono text-base",
+            // Visuals
+            "bg-muted/20 border-muted-foreground/20",
+            // Interaction
+            "hover:bg-muted/30 focus-visible:border-transparent",
+            // Animation
+            "transition-colors"
+          )}
           spellCheck={false}
         />
         <CopyButton
           text={copyValue}
-          className="h-10 w-10 shrink-0 border-border/60 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
         />
       </div>
     </div>

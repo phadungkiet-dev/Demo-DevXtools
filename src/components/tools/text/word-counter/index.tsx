@@ -66,7 +66,6 @@ export function WordCounter() {
 
   return (
     // Grid Layout: Mobile Stacked, Desktop Split 2:1 Fixed Height
-    // <div className="grid gap-6 lg:grid-cols-3 lg:h-[550px] transition-all animate-in fade-in duration-500"></div>
     <div
       className={cn(
         // Grid Layout
@@ -215,7 +214,7 @@ export function WordCounter() {
                 </span>
               </div>
               <div
-                className={cn(
+                className={cn( 
                   // Flexbox Layout
                   "flex flex-col items-center justify-center gap-1",
                   // Sizing & Spacing

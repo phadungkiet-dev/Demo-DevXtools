@@ -1,8 +1,6 @@
 "use client";
 
-// =============================================================================
-// Imports
-// =============================================================================
+// Imports ================
 import { HexColorPicker } from "react-colorful";
 import { Paintbrush } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,9 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-// =============================================================================
-// Constants
-// =============================================================================
+// Constants ===============
 const PRESET_COLORS = [
   "#ef4444",
   "#f97316",
@@ -31,9 +27,7 @@ const PRESET_COLORS = [
   "#000000",
 ];
 
-// =============================================================================
-// Types
-// =============================================================================
+// Types ==================
 interface ColorPickerProps {
   color: string;
   onChange: (color: string) => void;
@@ -41,9 +35,7 @@ interface ColorPickerProps {
   disabled?: boolean;
 }
 
-// =============================================================================
-// Component
-// =============================================================================
+// Component ===============
 export function ColorPicker({
   color,
   onChange,
@@ -54,51 +46,71 @@ export function ColorPicker({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           disabled={disabled}
           className={cn(
-            "w-full justify-start text-left font-normal px-3 py-6 relative overflow-hidden group border-border/60 hover:border-primary/50 transition-all",
+            // Layout & Flexbox
+            "relative w-full flex items-center justify-between overflow-hidden",
+            // Spacing
+            "px-3 py-6",
+            // Typography
+            "text-left font-normal",
+            // Visuals
+            "group border border-border/60",
+            // Interaction
+            "transition-all hover:border-border/80",
             disabled && "opacity-50 cursor-not-allowed",
             className
           )}
         >
           <div
-            className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none"
+            className={cn(
+              // Positioning
+              "absolute inset-0",
+              // UX/Interaction
+              "pointer-events-none",
+              // Visuals
+              "opacity-10",
+              // Animation & State
+              "transition-opacity group-hover:opacity-20"
+            )}
             style={{ backgroundColor: color }}
           />
-
-          <div className="flex items-center gap-3 z-10 w-full">
+          <div className="flex gap-3 items-center w-full">
             <div
-              className="w-6 h-6 rounded-md border border-border/50 shadow-sm shrink-0"
+              // w-6 h-6 rounded-md border border-border/50 shadow-sm shrink-0
+              className="w-8 h-8 rounded-md border border-border/40 shadow-sm"
               style={{ backgroundColor: color }}
             />
             <div className="flex flex-col items-start gap-0.5 min-w-0">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase">
                 Pick Color
               </span>
               <span className="font-mono text-sm font-medium truncate uppercase">
                 {color}
               </span>
             </div>
-            <Paintbrush className="ml-auto h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+            <Paintbrush className="ml-auto h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10" />
           </div>
         </Button>
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[280px] sm:w-[320px] p-4 space-y-4"
+        className="w-full sm:w-[300px] p-4 space-y-4"
         align="start"
       >
         {/* 🎨 Responsive Style for react-colorful 
           - w-full: ยืดเต็มความกว้าง Popover
           - h-[200px]: ความสูงมาตรฐานที่กดง่ายทั้ง Desktop/Mobile
         */}
-        <div className="w-full [&_.react-colorful]:w-full [&_.react-colorful]:h-[200px] [&_.react-colorful]:rounded-lg [&_.react-colorful__saturation]:rounded-t-lg [&_.react-colorful__saturation]:border-b [&_.react-colorful__saturation]:border-border/10 [&_.react-colorful__hue]:h-8 [&_.react-colorful__hue]:rounded-b-lg [&_.react-colorful__hue]:mt-[-1px] [&_.react-colorful__pointer]:w-6 [&_.react-colorful__pointer]:h-6 [&_.react-colorful__pointer]:border-2 [&_.react-colorful__pointer]:border-white [&_.react-colorful__pointer]:shadow-sm">
+        {/* w-full [&_.react-colorful]:w-full [&_.react-colorful]:h-[200px] [&_.react-colorful]:rounded-lg [&_.react-colorful__saturation]:rounded-t-lg [&_.react-colorful__saturation]:border-b [&_.react-colorful__saturation]:border-border/10 [&_.react-colorful__hue]:h-8 [&_.react-colorful__hue]:rounded-b-lg [&_.react-colorful__hue]:mt-[-1px] [&_.react-colorful__pointer]:w-6 [&_.react-colorful__pointer]:h-6 [&_.react-colorful__pointer]:border-2 
+        [&_.react-colorful__pointer]:border-white [&_.react-colorful__pointer]:shadow-sm */}
+        <div className="w-full flex flex-col [&_.react-colorful]:!w-full ">
           <HexColorPicker color={color} onChange={onChange} />
         </div>
 
         <div className="space-y-2">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+          <span className="text-[12px] font-bold text-muted-foreground uppercase">
             Presets
           </span>
           <div className="grid grid-cols-6 gap-2">
@@ -107,9 +119,23 @@ export function ColorPicker({
                 key={preset}
                 type="button"
                 className={cn(
-                  "aspect-square rounded-md border border-border/50 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                  // Base Shape
+                  "aspect-square rounded-md border border-border/50",
+                  // Base Interaction
+                  "transition-all duration-300 hover:scale-110",
+                  // Focus State
+                  "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-background",
+                  "focus:outline-none focus:ring-2 focus:ring-muted/50",
                   color.toLowerCase() === preset.toLowerCase() &&
-                    "ring-2 ring-primary border-primary scale-105"
+                    cn(
+                      // scale:
+                      "scale-105",
+                      // border:
+                      "border-muted-foreground/60",
+                      // ring:
+                      "ring-2 ring-primary/60",
+                      "ring-offset-2 ring-offset-background"
+                    )
                 )}
                 style={{ backgroundColor: preset }}
                 onClick={() => onChange(preset)}

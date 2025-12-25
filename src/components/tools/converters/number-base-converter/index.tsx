@@ -153,9 +153,7 @@ export function NumberBaseConverter() {
   );
 }
 
-// =============================================================================
-// Sub-Component: Base Input Card
-// =============================================================================
+// Sub-Component: Base Input Card ====================
 interface BaseInputCardProps {
   config: BaseConfig;
   value: string;
